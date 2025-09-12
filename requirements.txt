@@ -1,0 +1,3 @@
+# LSP-RepoGraph Requirements
+# Pyright language server for semantic Python analysis
+pyright>=1.1.0
