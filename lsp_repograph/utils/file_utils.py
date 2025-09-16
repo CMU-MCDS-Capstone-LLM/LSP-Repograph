@@ -3,8 +3,8 @@ File utilities for creating test projects and managing files
 """
 
 from pathlib import Path
-
-
+import urllib
+import os
 def create_sample_project(base_path: str = None) -> str:
     """
     Create sample Python project for testing LSP functionality

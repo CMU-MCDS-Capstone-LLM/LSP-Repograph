@@ -6,8 +6,9 @@ LSP-first approach using Pyright for semantic analysis
 from pathlib import Path
 from typing import List, Dict, Any
 from ..core.pyright_client import PyrightLSPClient
-from ..core.result_formatter import LSPResultFormatter
-
+from ..core.pyright_result_formatter import PyrightResultFormatter
+from ..core.multilspy_client import MultilspyLSPClient
+from ..core.multilspy_result_formatter import MultilspyResultFormatter
 
 class SimpleCodeTool:
     """
@@ -28,9 +29,14 @@ class SimpleCodeTool:
             raise ValueError(f"Repository path does not exist: {repo_path}")
             
         # Initialize LSP client
-        print("Starting Pyright LSP server...")
-        self.lsp_client = PyrightLSPClient(str(self.repo_path))
-        self.formatter = LSPResultFormatter(str(self.repo_path))
+        # print("Starting Pyright LSP server...")
+        # self.lsp_client = PyrightLSPClient(str(self.repo_path))
+        # self.formatter = PyrightResultFormatter(str(self.repo_path))
+        # print("✓ LSP server ready")
+
+        print("Starting Jedi LSP server (Multilspy)...")
+        self.lsp_client = MultilspyLSPClient(str(self.repo_path))
+        self.formatter = MultilspyResultFormatter(str(self.repo_path))
         print("✓ LSP server ready")
     
     def where_defined(self, symbol_name: str) -> List[Dict[str, Any]]:

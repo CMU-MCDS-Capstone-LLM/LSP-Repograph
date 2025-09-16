@@ -2,6 +2,38 @@
 
 A high-performance, semantic code search tool for AI agents using Pyright LSP server.
 
+## TODO
+
+- [ ] Implement repograph based on multilspy + jedi
+
+    - To get definition node by name, use `multilspy.SyncLanguageServer.request_workspace_symbol`. This will return the exact file + line + col of the variable definition
+
+        Seems like Jedi also support search by prefix automatically.
+
+    - For reference edge, i.e. to get all references of a definition, use `multilspy.SyncLanguageServer.request_references` on the exact location of definition (file + line + col)
+
+    - For contain edge, we only support "class contains methods", and implement this by analyzing the class code on the fly with ast parsing (using the builtin `ast` library)
+
+        - For the case of "function contains function", we don't support it. It's a rare case, and the inner function won't be referenced outside of the outer function, unless it's returned, in which case we can't find the usage anyway.
+
+            This is an example, where the inner function `bar` is returned by `foo`, and used in `main` function. We won't create a reference edge in the repograph from `main` to `bar`.
+
+            ```python
+            def foo():
+                def bar():
+                    print("bar")
+                
+                return bar 
+
+            def main():
+                myfunc = foo()
+                myfunc()
+            ```
+
+- [ ] Run LSP-RepoGraph on the largest few data points in PyMigBench.
+
+    Size of data point is measured by #python file and LoC
+
 ## Overview
 
 LSP-RepoGraph provides `where_used` and `where_defined` functionality by leveraging Language Server Protocol (LSP) capabilities instead of text scanning. This approach offers:

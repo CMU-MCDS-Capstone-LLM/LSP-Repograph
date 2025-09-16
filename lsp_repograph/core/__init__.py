@@ -3,6 +3,6 @@ Core components for LSP-based code search
 """
 
 from .pyright_client import PyrightLSPClient
-from .result_formatter import LSPResultFormatter
+from .pyright_result_formatter import PyrightResultFormatter
 
-__all__ = ['PyrightLSPClient', 'LSPResultFormatter']
+__all__ = ['PyrightLSPClient', 'PyrightResultFormatter']

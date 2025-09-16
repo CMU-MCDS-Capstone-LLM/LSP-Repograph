@@ -3,7 +3,7 @@ Tests for calculator functionality
 """
 
 import unittest
-from sample_project.math_utils import Calculator, calculate_sum, calculate_product
+from core.math_utils import Calculator, calculate_sum, calculate_product
 
 class TestCalculator(unittest.TestCase):
     """Test cases for Calculator class"""

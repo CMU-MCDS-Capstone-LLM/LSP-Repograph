@@ -7,6 +7,7 @@ import subprocess
 import json
 import threading
 import time
+import os
 from pathlib import Path
 from typing import Dict, List, Optional, Any
 
@@ -34,13 +35,14 @@ class PyrightLSPClient:
         """Start Pyright LSP server process"""
         try:
             self.server = subprocess.Popen([
-                'pyright-langserver', '--stdio'
-            ],
-            stdin=subprocess.PIPE,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True,
-            bufsize=0
+                    # 'pyright-langserver', '--stdio'
+                    'jedi-language-server'
+                ],
+                stdin=subprocess.PIPE,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                bufsize=0
             )
             
             # Start response reader thread
@@ -60,23 +62,33 @@ class PyrightLSPClient:
             "id": self._next_id(),
             "method": "initialize",
             "params": {
-                "rootUri": self.repo_path.as_uri(),
-                "capabilities": {
-                    "workspace": {
-                        "symbol": {
-                            "dynamicRegistration": False
-                        }
-                    },
-                    "textDocument": {
-                        "definition": {"linkSupport": False},
-                        "references": {"context": True},
-                        "documentSymbol": {
-                            "dynamicRegistration": False,
-                            "hierarchicalDocumentSymbolSupport": True
+                "processId": os.getpid(),
+                "workspaceFolders": [
+                    {"uri": self.repo_path.as_uri(), "name": self.repo_path.name}
+                ],
+                # "capabilities": {
+                #     "textDocument": {
+                #         "synchronization": {
+                #         "dynamicRegistration": False,
+                #         "willSave": False,
+                #         "didSave": True
+                #         }
+                #     },
+                #     "workspace": {
+                #         "didChangeWatchedFiles": { "dynamicRegistration": True },
+                #         "workspaceFolders": True,
+                #         "configuration": True
+                #     }
+                # },
+                "initializationOptions": {
+                    "settings": {
+                        "python": {
+                            "analysis": {
+                                "diagnosticMode": "workspace"
+                            }
                         }
                     }
-                },
-                "initializationOptions": {}
+                }
             }
         }
         
@@ -212,9 +224,9 @@ class PyrightLSPClient:
                 request_str = json.dumps(request)
                 content_length = len(request_str.encode('utf-8'))
                 
-                message = f"Content-Length: {content_length}\r\n\r\n{request_str}\n"
+                message = f"Content-Length: {content_length}\r\n\r\n{request_str}"
                 
-                print(f"LSP: Sending request: {request_str[:200]}...")  # Debug output
+                print(f"LSP: Sending request: {request_str}.")  # Debug output
                 
                 self.server.stdin.write(message)
                 self.server.stdin.flush()
@@ -229,10 +241,10 @@ class PyrightLSPClient:
                     response = pending.get('response')
                     
                     if response and 'result' in response:
-                        print(f"LSP: Got successful response for request {request_id}")
+                        print(f"LSP: Got successful response for request {request_id}.")
                         return response['result']
                     elif response and 'error' in response:
-                        print(f"LSP error: {response['error']}")
+                        print(f"LSP error: {response['error']}.")
                         return None
                 else:
                     print(f"LSP request {request_id} timed out")
@@ -254,6 +266,7 @@ class PyrightLSPClient:
             try:
                 # Read Content-Length header
                 header = self.server.stdout.readline()
+                print("header: ", header.__repr__())
                 if not header:
                     print("LSP: No header received, server might be dead")
                     break
@@ -266,14 +279,16 @@ class PyrightLSPClient:
                 
                 # Skip empty line
                 empty_line = self.server.stdout.readline()
+                print("empty line: ", empty_line.__repr__())
                 
                 # Read JSON content
                 content = self.server.stdout.read(length)
+                print("content: ", content.__repr__())
                 if not content:
                     print("LSP: No content received")
                     break
                 
-                print(f"LSP: Received response: {content[:200]}...")  # Debug output
+                print(f"LSP: Received response: {content}.")  # Debug output
                     
                 response = json.loads(content)
                 

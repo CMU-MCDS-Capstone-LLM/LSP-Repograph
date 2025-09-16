@@ -2,7 +2,7 @@
 Main application demonstrating calculator usage
 """
 
-from sample_project.math_utils import Calculator, AdvancedCalculator, calculate_sum
+from core.math_utils import Calculator, AdvancedCalculator, calculate_sum
 
 def main():
     """Main application function"""

@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import List, Dict, Any, Optional
 
 
-class LSPResultFormatter:
+class PyrightResultFormatter:
     """Format LSP responses focusing on workspace symbols and references"""
     
     def __init__(self, repo_path: str):
