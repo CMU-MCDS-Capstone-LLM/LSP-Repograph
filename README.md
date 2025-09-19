@@ -34,6 +34,23 @@ A high-performance, semantic code search tool for AI agents using Pyright LSP se
 
     Size of data point is measured by #python file and LoC
 
+- [ ] search symbol for third-party libraries
+
+    - May need to pass environmentPath (path to python binary) to initializationOptions
+
+        This is defined at `/home/eiger/CMU/2025_Spring/11634_Capstone/playground/LSP-RepoGraph/venv/lib/python3.10/site-packages/multilspy/language_servers/jedi_language_server/initialize_params.json`
+
+    This can be done with a scratch file `scratch.py` of this form
+
+    ```python
+    from os.path import join
+    join
+    ```
+
+    and call `textDocument/definition` on line 0 col 0 in `scratch.py`
+
+- [ ] implement "contains" relationship for classes
+
 ## Overview
 
 LSP-RepoGraph provides `where_used` and `where_defined` functionality by leveraging Language Server Protocol (LSP) capabilities instead of text scanning. This approach offers:
