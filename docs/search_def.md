@@ -170,3 +170,7 @@ A list of symbol definition info. Each symbol definition info consists of
 - Symbol type, as is defined in the [LSP protocol](https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#textDocument_documentSymbol).
 
 The list is de-duplicated by `(uri, start_loc)`
+
+## Notes
+
+- When finding def of a workspace method via query, you must specify both class and method, such as `Calculator.add`. Otherwise it won't work.

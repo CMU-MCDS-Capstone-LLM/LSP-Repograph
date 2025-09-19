@@ -357,6 +357,81 @@ class MultilspyLSPClient:
         """
         return self.find_non_ws_symbol_refs("builtins", symbol)
     
+    def find_ws_symbol_refs(self, query: str) -> List[Dict[str, Any]]:
+        """
+        Find references to workspace symbol by full path query
+        
+        Args:
+            query: Full path to symbol (e.g., "core.math_utils.Calculator.add")
+            
+        Returns:
+            List of reference locations, or empty list if symbol is ambiguous or not found
+        """
+        if not self.server:
+            return []
+            
+        try:
+            with self.server.start_server():
+                # First, search for the symbol definition
+                symbol_defs = self.server.request_workspace_symbol(query)
+                
+                if not isinstance(symbol_defs, list):
+                    print(f"No workspace symbols found for query: '{query}'")
+                    return []
+                
+                if len(symbol_defs) == 0:
+                    print(f"No workspace symbols found for query: '{query}'")
+                    return []
+                
+                if len(symbol_defs) > 1:
+                    print(f"Ambiguous query '{query}' - found {len(symbol_defs)} symbols:")
+                    for i, symbol in enumerate(symbol_defs):
+                        location = symbol.get('location', {})
+                        uri = location.get('uri', 'unknown')
+                        range_info = location.get('range', {})
+                        start = range_info.get('start', {})
+                        line = start.get('line', 0)
+                        print(f"  {i+1}. {symbol.get('name', 'unknown')} at {uri}:{line+1}")
+                    print("Please use a more specific query or use find-def-at-pos with exact location")
+                    return []
+                
+                # Exactly one symbol found - get its location and find references
+                symbol = symbol_defs[0]
+                location = symbol['location']
+                
+                # Extract file path from URI
+                uri = location['uri']
+                if uri.startswith('file://'):
+                    file_path = uri[7:]  # Remove 'file://' prefix
+                else:
+                    file_path = uri
+                
+                # Extract position
+                range_info = location['range']
+                line = range_info['start']['line']
+                character = range_info['start']['character']
+                
+                print(f"Found unique symbol '{symbol.get('name', 'unknown')}' at {file_path}:{line+1}:{character}")
+                print("Finding references...")
+                
+                # Find references at this location
+                references = self.server.request_references(file_path, line, character)
+                
+                if not isinstance(references, list):
+                    return []
+                
+                # Filter out venv references
+                filtered_refs = []
+                for ref in references:
+                    if not self._is_in_venv(ref):
+                        filtered_refs.append(ref)
+                
+                return filtered_refs
+                
+        except Exception as e:
+            print(f"Error finding workspace symbol references: {e}")
+            return []
+    
     def _is_scratch_file_ref(self, reference: Dict[str, Any], scratch_path: Path) -> bool:
         """
         Check if a reference is from the scratch file itself

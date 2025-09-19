@@ -19,10 +19,11 @@ def print_help():
     """Print available commands"""
     print("\n=== MultilspyLSPClient Demo REPL ===")
     print("Commands:")
-    print("  find-ws-def <query>            - Find workspace symbol definitions")
+    print("  find-ws-def <query>            - Find workspace symbol definitions (this excludes symbols from third-party / standard library, and built-ins)")
+    print("  find-ws-refs <query>           - Find workspace symbol references (<query> must uniquely identify a symbol in workspace)")
     print("  find-lib-def <library> [symbol] - Find library symbol definitions")
-    print("  find-builtin-def [symbol]      - Find builtin symbol definitions")
     print("  find-lib-refs <library> [symbol] - Find library symbol references")
+    print("  find-builtin-def [symbol]      - Find builtin symbol definitions")
     print("  find-builtin-refs [symbol]     - Find builtin symbol references")
     print("  find-def-at-pos <file> <line> <col> - Find definition at position")
     print("  find-refs-at-pos <file> <line> <col> - Find references at position")
@@ -32,16 +33,19 @@ def print_help():
     print("Line and column numbers are 0-indexed.")
     print("Examples:")
     print("  find-ws-def AdvancedCalculator")
+    print("  find-ws-refs core.math_utils.Calculator.add")
     print("  find-lib-def os.path join")
-    print("  find-builtin-def int")
     print("  find-lib-refs os.path join")
+    print("  find-builtin-def int")
     print("  find-builtin-refs print")
     print("  find-def-at-pos main.py 4 40")
+    print("  find-refs-at-pos main.py 4 40")
 
 
 def main():
     # Use sample_project as default repo
     repo_path = os.path.join(os.path.dirname(__file__), "sample_project")
+    # repo_path = os.path.join(os.path.dirname(__file__), "sample_project_no_venv")
     # repo_path = "/home/eiger/CMU/2025_Spring/11634_Capstone/playground/pymigbench/repos/twisted_twisted_e31995c9_parent"
     # repo_path = "/home/eiger/CMU/2025_Spring/11634_Capstone/playground/pymigbench/repos/ovirt_vdsm_6eef802a_parent"
     # repo_path = "/home/eiger/CMU/2025_Spring/11634_Capstone/playground/pymigbench/repos/toufool_auto-split_86244b6c_parent"
@@ -92,6 +96,18 @@ def main():
                 
                 result = client.search_ws_symbol_def(query)
                 print(f"\nFound {len(result)} workspace symbols:")
+                pprint(result)
+                
+            elif cmd == 'find-ws-refs':
+                if len(parts) < 2:
+                    print("Usage: find-ws-refs <query>")
+                    continue
+                    
+                query = ' '.join(parts[1:])
+                print(f"Searching workspace symbol references for: '{query}'")
+                
+                result = client.find_ws_symbol_refs(query)
+                print(f"\nFound {len(result)} workspace symbol references:")
                 pprint(result)
                 
             elif cmd == 'find-lib-def':
