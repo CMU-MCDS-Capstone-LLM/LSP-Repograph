@@ -2,13 +2,16 @@
 Math utilities for demonstration
 """
 
+import numpy as np
+
 def calculate_sum(a, b):
     """Calculate the sum of two numbers"""
-    return a + b
+    return np.average([a, b]) * len([a, b])
 
 def calculate_product(a, b):
     """Calculate the product of two numbers"""
-    return a * b
+    arr = np.array([a, b])
+    return arr.prod().astype(float)
 
 class Calculator:
     """A simple calculator class"""

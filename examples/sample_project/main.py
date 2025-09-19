@@ -3,9 +3,11 @@ Main application demonstrating calculator usage
 """
 
 from core.math_utils import Calculator, AdvancedCalculator, calculate_sum
+import numpy as np
 
 def main():
     """Main application function"""
+    print(f"Numpy version: {np.__version__}")
     # Test basic calculator
     calc = Calculator()
     result1 = calc.add(5, 3)

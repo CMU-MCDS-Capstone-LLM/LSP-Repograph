@@ -12,7 +12,7 @@ from pprint import pprint
 # Add parent directory to path to import lsp_repograph
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from lsp_repograph.core.jedi_client import JediLSPClient
+from lsp_repograph.core.multilspy_client import MultilspyLSPClient
 
 
 def print_help():
@@ -32,6 +32,9 @@ def print_help():
 def main():
     # Use sample_project as default repo
     repo_path = os.path.join(os.path.dirname(__file__), "sample_project")
+    # repo_path = "/home/eiger/CMU/2025_Spring/11634_Capstone/playground/pymigbench/repos/twisted_twisted_e31995c9_parent"
+    # repo_path = "/home/eiger/CMU/2025_Spring/11634_Capstone/playground/pymigbench/repos/ovirt_vdsm_6eef802a_parent"
+    # repo_path = "/home/eiger/CMU/2025_Spring/11634_Capstone/playground/pymigbench/repos/toufool_auto-split_86244b6c_parent"
     
     if not os.path.exists(repo_path):
         print(f"Error: Sample project not found at {repo_path}")
@@ -40,7 +43,7 @@ def main():
     print(f"Initializing JediLSPClient for repo: {repo_path}")
     
     try:
-        client = JediLSPClient(repo_path)
+        client = MultilspyLSPClient(repo_path)
         print("Client initialized successfully!")
     except Exception as e:
         print(f"Failed to initialize client: {e}")
