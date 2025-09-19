@@ -17,16 +17,26 @@ from lsp_repograph.core.multilspy_client import MultilspyLSPClient
 
 def print_help():
     """Print available commands"""
-    print("\n=== JediLSPClient Demo REPL ===")
+    print("\n=== MultilspyLSPClient Demo REPL ===")
     print("Commands:")
-    print("  search <query>                 - Search for symbols")
-    print("  def <file> <line> <col>       - Find definition at position")
-    print("  refs <file> <line> <col>      - Find references at position") 
+    print("  find-ws-def <query>            - Find workspace symbol definitions")
+    print("  find-lib-def <library> [symbol] - Find library symbol definitions")
+    print("  find-builtin-def [symbol]      - Find builtin symbol definitions")
+    print("  find-lib-refs <library> [symbol] - Find library symbol references")
+    print("  find-builtin-refs [symbol]     - Find builtin symbol references")
+    print("  find-def-at-pos <file> <line> <col> - Find definition at position")
+    print("  find-refs-at-pos <file> <line> <col> - Find references at position")
     print("  help                          - Show this help")
     print("  quit / exit                   - Exit REPL")
     print("\nFile paths should be relative to the repo root.")
     print("Line and column numbers are 0-indexed.")
-    print("Example: def main.py 4 40")
+    print("Examples:")
+    print("  find-ws-def AdvancedCalculator")
+    print("  find-lib-def os.path join")
+    print("  find-builtin-def int")
+    print("  find-lib-refs os.path join")
+    print("  find-builtin-refs print")
+    print("  find-def-at-pos main.py 4 40")
 
 
 def main():
@@ -72,21 +82,79 @@ def main():
                 
             cmd = parts[0].lower()
             
-            if cmd == 'search':
+            if cmd == 'find-ws-def':
                 if len(parts) < 2:
-                    print("Usage: search <query>")
+                    print("Usage: find-ws-def <query>")
                     continue
                     
                 query = ' '.join(parts[1:])
-                print(f"Searching for: '{query}'")
+                print(f"Searching workspace symbols for: '{query}'")
                 
-                result = client.search_symbol(query)
-                print(f"\nFound {len(result)} symbols:")
+                result = client.search_ws_symbol_def(query)
+                print(f"\nFound {len(result)} workspace symbols:")
                 pprint(result)
                 
-            elif cmd == 'def':
+            elif cmd == 'find-lib-def':
+                if len(parts) < 2:
+                    print("Usage: find-lib-def <library> [symbol]")
+                    continue
+                    
+                library = parts[1]
+                symbol = parts[2] if len(parts) > 2 else None
+                
+                if symbol:
+                    print(f"Searching for symbol '{symbol}' in library '{library}'")
+                else:
+                    print(f"Searching for library '{library}' definition")
+                
+                result = client.search_non_workspace_library_symbol(library, symbol)
+                print(f"\nFound {len(result)} library symbols:")
+                pprint(result)
+                
+            elif cmd == 'find-builtin-def':
+                symbol = parts[1] if len(parts) > 1 else None
+                
+                if symbol:
+                    print(f"Searching for builtin symbol '{symbol}'")
+                else:
+                    print("Searching for builtins module definition")
+                
+                result = client.search_builtins_symbol_def(symbol)
+                print(f"\nFound {len(result)} builtin symbols:")
+                pprint(result)
+                
+            elif cmd == 'find-lib-refs':
+                if len(parts) < 2:
+                    print("Usage: find-lib-refs <library> [symbol]")
+                    continue
+                    
+                library = parts[1]
+                symbol = parts[2] if len(parts) > 2 else None
+                
+                if symbol:
+                    print(f"Searching for references to symbol '{symbol}' in library '{library}'")
+                else:
+                    print(f"Searching for references to library '{library}'")
+                
+                result = client.find_non_workspace_library_symbol_refs(library, symbol)
+                print(f"\nFound {len(result)} library symbol references:")
+                pprint(result)
+                
+            elif cmd == 'find-builtin-refs':
+                symbol = parts[1] if len(parts) > 1 else None
+                
+                if symbol:
+                    print(f"Searching for references to builtin symbol '{symbol}'")
+                else:
+                    print("Searching for references to builtins module")
+                
+                result = client.find_builtins_symbol_refs(symbol)
+                print(f"\nFound {len(result)} builtin symbol references:")
+                pprint(result)
+                
+            elif cmd == 'find-def-at-pos':
                 if len(parts) < 4:
-                    print("Usage: def <file> <line> <col>")
+                    print("Usage: find-def-at-pos <file> <line> <col>")
                     continue
                     
                 try:
@@ -112,9 +180,9 @@ def main():
                 except Exception as e:
                     print(f"Error: {e}")
                     
-            elif cmd == 'refs':
+            elif cmd == 'find-refs-at-pos':
                 if len(parts) < 4:
-                    print("Usage: refs <file> <line> <col>")
+                    print("Usage: find-refs-at-pos <file> <line> <col>")
                     continue
                     
                 try:
