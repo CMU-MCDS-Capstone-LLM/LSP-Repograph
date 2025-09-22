@@ -1,20 +1,38 @@
 # LSP-RepoGraph
 
-A high-performance, semantic code search tool for AI agents using Pyright LSP server.
+A high-performance, semantic code search tool for AI agents using Pyright LSP server based on RepoGraph.
+
+## Getting Started
+
+To run the demo, follow these steps
+
+- Install requirements with
+
+```bash
+pip install -r requirements.txt
+```
+
+- Run the demo
+
+```bash
+python examples/demo-multilspy-clients.py
+```
+
+In the future, I will make this into a python package to simplify the setup.
 
 ## TODO
 
 - [ ] Implement repograph based on multilspy + jedi
 
-    - To get definition node by name, use `multilspy.SyncLanguageServer.request_workspace_symbol`. This will return the exact file + line + col of the variable definition
+  - To get definition node by name, use `multilspy.SyncLanguageServer.request_workspace_symbol`. This will return the exact file + line + col of the variable definition
 
         Seems like Jedi also support search by prefix automatically.
 
-    - For reference edge, i.e. to get all references of a definition, use `multilspy.SyncLanguageServer.request_references` on the exact location of definition (file + line + col)
+  - For reference edge, i.e. to get all references of a definition, use `multilspy.SyncLanguageServer.request_references` on the exact location of definition (file + line + col)
 
-    - For contain edge, we only support "class contains methods", and implement this by analyzing the class code on the fly with ast parsing (using the builtin `ast` library)
+  - For contain edge, we only support "class contains methods", and implement this by analyzing the class code on the fly with ast parsing (using the builtin `ast` library)
 
-        - For the case of "function contains function", we don't support it. It's a rare case, and the inner function won't be referenced outside of the outer function, unless it's returned, in which case we can't find the usage anyway.
+    - For the case of "function contains function", we don't support it. It's a rare case, and the inner function won't be referenced outside of the outer function, unless it's returned, in which case we can't find the usage anyway.
 
             This is an example, where the inner function `bar` is returned by `foo`, and used in `main` function. We won't create a reference edge in the repograph from `main` to `bar`.
 
@@ -30,13 +48,13 @@ A high-performance, semantic code search tool for AI agents using Pyright LSP se
                 myfunc()
             ```
 
-- [ ] Run LSP-RepoGraph on the largest few data points in PyMigBench.
+- [x] Run LSP-RepoGraph on the largest few data points in PyMigBench.
 
     Size of data point is measured by #python file and LoC
 
-- [ ] search symbol for third-party libraries
+- [x] search symbol for third-party libraries
 
-    - May need to pass environmentPath (path to python binary) to initializationOptions
+  - May need to pass environmentPath (path to python binary) to initializationOptions
 
         This is defined at `/home/eiger/CMU/2025_Spring/11634_Capstone/playground/LSP-RepoGraph/venv/lib/python3.10/site-packages/multilspy/language_servers/jedi_language_server/initialize_params.json`
 
@@ -51,7 +69,13 @@ A high-performance, semantic code search tool for AI agents using Pyright LSP se
 
 - [ ] implement "contains" relationship for classes
 
+- [ ] Make it into a python package
+
+- [ ] Integrate with SWE-Agent as a tool
+
 ## Overview
+
+> The sections below are not updated. Just refer to getting started section above.
 
 LSP-RepoGraph provides `where_used` and `where_defined` functionality by leveraging Language Server Protocol (LSP) capabilities instead of text scanning. This approach offers:
 
@@ -64,7 +88,7 @@ LSP-RepoGraph provides `where_used` and `where_defined` functionality by leverag
 
 ```bash
 # Install dependencies
-pip install pyright
+pip install -r requirements.txt
 
 # Install LSP-RepoGraph
 pip install -e .
@@ -101,6 +125,7 @@ python demo.py
 ```
 
 Try these commands:
+
 - `def Calculator` - Find Calculator class definition
 - `use calculate_sum` - Find all uses of calculate_sum function
 - `both AdvancedCalculator` - Find definition and all uses
@@ -117,6 +142,7 @@ Main interface for code search functionality.
 Find where a symbol is defined.
 
 **Returns:**
+
 ```python
 [
     {
@@ -136,6 +162,7 @@ Find where a symbol is defined.
 Find where a symbol is used/referenced.
 
 **Returns:**
+
 ```python
 [
     {
@@ -153,6 +180,7 @@ Find where a symbol is used/referenced.
 Get both definitions and references.
 
 **Returns:**
+
 ```python
 {
     'definitions': [...],  # List of definition results
@@ -204,7 +232,7 @@ python examples/demo.py
 - **Pyright dependency**: Requires Pyright LSP server installation
 - **Startup time**: Initial LSP server startup takes ~1-2 seconds
 
-## Comparison with RepGraph
+## Comparison with RepoGraph
 
 | Feature | RepGraph | LSP-RepoGraph |
 |---------|----------|---------------|
@@ -217,3 +245,4 @@ python examples/demo.py
 ## License
 
 MIT License
+
