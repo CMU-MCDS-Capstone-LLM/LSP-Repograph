@@ -28,16 +28,10 @@ class SimpleCodeTool:
         if not self.repo_path.exists():
             raise ValueError(f"Repository path does not exist: {repo_path}")
             
-        # Initialize LSP client
-        # print("Starting Pyright LSP server...")
-        # self.lsp_client = PyrightLSPClient(str(self.repo_path))
-        # self.formatter = PyrightResultFormatter(str(self.repo_path))
-        # print("✓ LSP server ready")
-
-        print("Starting Jedi LSP server (Multilspy)...")
+        print("Starting Jedi LSP server (Multilspy - Jedi Langauge Server)...")
         self.lsp_client = MultilspyLSPClient(str(self.repo_path))
         self.formatter = MultilspyResultFormatter(str(self.repo_path))
-        print("✓ LSP server ready")
+        print("LSP server ready")
     
     def where_defined(self, symbol_name: str) -> List[Dict[str, Any]]:
         """

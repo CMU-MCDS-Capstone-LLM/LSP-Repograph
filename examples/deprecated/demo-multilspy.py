@@ -43,31 +43,31 @@ repo_path = "/home/eiger/CMU/2025_Spring/11634_Capstone/playground/LSP-RepoGraph
 lsp = SyncLanguageServer.create(config, logger, repo_path)
 print(f"Repo at {repo_path}")
 with lsp.start_server():
-    # while input() != "exit":
-    result = lsp.request_workspace_symbol('math_utils.AdvancedCalculator')
-    print("request_workspace_symbol: ")
-    pprint(result)
-    file_path = uri_to_path(
-        result[0]['location']['uri']
-    )
-    print()
+    # # while input() != "exit":
+    # result = lsp.request_workspace_symbol('math_utils.AdvancedCalculator')
+    # print("request_workspace_symbol: ")
+    # pprint(result)
+    # file_path = uri_to_path(
+    #     result[0]['location']['uri']
+    # )
+    # print()
 
-    start_line = result[0]['location']['range']['start']['line']
-    start_col = result[0]['location']['range']['start']['character']
-    result = lsp.request_definition(
-        file_path, start_line, start_col
-    )
+    # start_line = result[0]['location']['range']['start']['line']
+    # start_col = result[0]['location']['range']['start']['character']
+    # result = lsp.request_definition(
+    #     file_path, start_line, start_col
+    # )
 
-    print("request_definition: ")
-    pprint(result)
-    result = lsp.request_references(
-        file_path, start_line, start_col
-    )
-    print()
+    # print("request_definition: ")
+    # pprint(result)
+    # result = lsp.request_references(
+    #     file_path, start_line, start_col
+    # )
+    # print()
 
-    print("request_references: ")
-    pprint(result)
-    print()
+    # print("request_references: ")
+    # pprint(result)
+    # print()
 
     # result = lsp.request_definition(
     #     "math_utils.py", # Filename of location where request is being made
@@ -85,11 +85,12 @@ with lsp.start_server():
     # )
 
     # Sample
-    # result = lsp.request_references(
-    #     "test_calculator.py",
-    #     28,
-    #     18
-    # )
+    result = lsp.request_hover(
+        "test_calculator.py",
+        28,
+        18
+    )
+    pprint(result)
     # result = lsp.request_workspace_symbol('AdvancedCalculator')
     # result = lsp.request_workspace_symbol('Calculator.multiply')
     # result = lsp.request_references(

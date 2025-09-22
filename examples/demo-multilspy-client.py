@@ -13,6 +13,44 @@ from pprint import pprint
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from lsp_repograph.core.multilspy_client import MultilspyLSPClient
+from typing import Dict, Any
+
+
+def read_file_line(file_path: str, line_number: int) -> str:
+    """Read a specific line from a file (0-indexed)"""
+    try:
+        with open(file_path, 'r', encoding='utf-8') as f:
+            lines = f.readlines()
+            if 0 <= line_number < len(lines):
+                return lines[line_number].rstrip()
+    except Exception as e:
+        return f"<Error reading file: {e}>"
+    return "<Line not found>"
+
+
+def format_reference_with_content(ref: Dict[str, Any], repo_path: str) -> str:
+    """Format a reference with its source line content"""
+    # Extract file path (prefer absolutePath, fallback to relativePath)
+    if 'absolutePath' in ref:
+        file_path = ref['absolutePath']
+        rel_path = os.path.relpath(file_path, repo_path)
+    elif 'relativePath' in ref:
+        rel_path = ref['relativePath'] 
+        file_path = os.path.join(repo_path, rel_path)
+    else:
+        return str(ref)  # Fallback to raw output
+    
+    # Extract line/column info
+    range_info = ref.get('range', {})
+    start = range_info.get('start', {})
+    line_num = start.get('line', 0)  # 0-indexed
+    col_num = start.get('character', 0)
+    
+    # Read the actual line content
+    line_content = read_file_line(file_path, line_num)
+    
+    # Format output
+    return f"{rel_path}:{line_num + 1}:{col_num + 1}: {line_content}"
 
 
 def print_help():
@@ -44,8 +82,8 @@ def print_help():
 
 def main():
     # Use sample_project as default repo
-    repo_path = os.path.join(os.path.dirname(__file__), "sample_project")
-    # repo_path = os.path.join(os.path.dirname(__file__), "sample_project_no_venv")
+    # repo_path = os.path.join(os.path.dirname(__file__), "sample_project")
+    repo_path = os.path.join(os.path.dirname(__file__), "sample_project_no_venv")
     # repo_path = "/home/eiger/CMU/2025_Spring/11634_Capstone/playground/pymigbench/repos/twisted_twisted_e31995c9_parent"
     # repo_path = "/home/eiger/CMU/2025_Spring/11634_Capstone/playground/pymigbench/repos/ovirt_vdsm_6eef802a_parent"
     # repo_path = "/home/eiger/CMU/2025_Spring/11634_Capstone/playground/pymigbench/repos/toufool_auto-split_86244b6c_parent"
@@ -108,7 +146,11 @@ def main():
                 
                 result = client.find_ws_symbol_refs(query)
                 print(f"\nFound {len(result)} workspace symbol references:")
-                pprint(result)
+                if result:
+                    for ref in result:
+                        print(format_reference_with_content(ref, repo_path))
+                else:
+                    print("No references found.")
                 
             elif cmd == 'find-lib-def':
                 if len(parts) < 2:
@@ -154,7 +196,11 @@ def main():
                 
                 result = client.find_non_workspace_library_symbol_refs(library, symbol)
                 print(f"\nFound {len(result)} library symbol references:")
-                pprint(result)
+                if result:
+                    for ref in result:
+                        print(format_reference_with_content(ref, repo_path))
+                else:
+                    print("No references found.")
                 
             elif cmd == 'find-builtin-refs':
                 symbol = parts[1] if len(parts) > 1 else None
@@ -166,7 +212,11 @@ def main():
                 
                 result = client.find_builtins_symbol_refs(symbol)
                 print(f"\nFound {len(result)} builtin symbol references:")
-                pprint(result)
+                if result:
+                    for ref in result:
+                        print(format_reference_with_content(ref, repo_path))
+                else:
+                    print("No references found.")
                 
             elif cmd == 'find-def-at-pos':
                 if len(parts) < 4:
@@ -217,7 +267,11 @@ def main():
                     
                     result = client.find_references(abs_path, line, col)
                     print(f"\nFound {len(result)} references:")
-                    pprint(result)
+                    if result:
+                        for ref in result:
+                            print(format_reference_with_content(ref, repo_path))
+                    else:
+                        print("No references found.")
                     
                 except ValueError:
                     print("Line and column must be integers")
