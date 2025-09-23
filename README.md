@@ -22,7 +22,7 @@ In the future, I will make this into a python package to simplify the setup.
 
 ## TODO
 
-- [ ] Implement repograph based on multilspy + jedi
+- [x] Implement repograph based on multilspy + jedi
 
   - To get definition node by name, use `multilspy.SyncLanguageServer.request_workspace_symbol`. This will return the exact file + line + col of the variable definition
 
@@ -67,8 +67,6 @@ In the future, I will make this into a python package to simplify the setup.
 
     and call `textDocument/definition` on line 0 col 0 in `scratch.py`
 
-- [ ] implement "contains" relationship for classes
-
 - [x] Make it into a python package
 
   - [x] Setup to install from local
@@ -89,9 +87,17 @@ In the future, I will make this into a python package to simplify the setup.
 
     - [x] Parametrize the custom jedi server with init param
 
-- [ ] Make the return value in simple-coding-tools typed. Define data classes repr the returned value
+- [x] Modularize the demo into a "repl" subpackage under repograph
+
+- [x] Make the return value in simple-coding-tools typed. Define data classes repr the returned value
+
+  We use the `multilspy_types` directly: find refs methods return dict of type `multilspy_types.Location`, and find def methods return dict of type `multilspy_types.UnifiedSymbolInformation`.
 
   This significantly helps with providing better prompt to ai agent, because the agent can know what to put in input and what to expect from output
+
+- [ ] When returning definition, return the range of definition (e.g. function foobar() is defined from line X to line Y), instead of only the location of definition name
+
+- [ ] implement "contains" relationship for classes
 
 - [ ] Integrate with SWE-Agent as a tool
 
