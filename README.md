@@ -69,11 +69,11 @@ In the future, I will make this into a python package to simplify the setup.
 
 - [ ] implement "contains" relationship for classes
 
-- [ ] Make it into a python package
+- [x] Make it into a python package
 
   - [x] Setup to install from local
 
-  - [ ] Pass in environment of target repo, instead of relying on the python interpreter that is used to run lsp-repograph
+  - [x] Pass in environment of target repo, instead of relying on the python interpreter that is used to run lsp-repograph
 
     When running lsp-repograph against a repo, there are two python environments here
 
