@@ -87,13 +87,23 @@ In the future, I will make this into a python package to simplify the setup.
 
     - [x] Create a custom jedi server by copying from the original jedi server's code
 
-    - [ ] Parametrize the custom jedi server with init param
+    - [x] Parametrize the custom jedi server with init param
 
 - [ ] Make the return value in simple-coding-tools typed. Define data classes repr the returned value
 
   This significantly helps with providing better prompt to ai agent.
 
 - [ ] Integrate with SWE-Agent as a tool
+
+### TODO Items not planned for Capstone
+
+Mainly due to time limit, some features won't be supported within the scope of Capstone.
+
+- [ ] What about overloaded methods (same method name w/ diff parameters)?
+
+  Overloaded method's definition location won't be returned by `textDocument/definition` with jedi-language-server.
+
+  Ideally, all overloads should be returned.
 
 ## Overview
 

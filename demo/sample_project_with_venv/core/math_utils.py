@@ -17,6 +17,7 @@ def calculate_sum(a, b):
 def calculate_product(a, b):
     """Calculate the product of two numbers"""
     # arr = np.array([a, b])
+    # # numpy.ndarray.prod seems to 
     # return arr.prod().astype(float)
     arr = deque([a, b])
     s = 1
