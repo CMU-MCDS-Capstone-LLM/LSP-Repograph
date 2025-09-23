@@ -4,13 +4,12 @@ Provides three core APIs: search symbol, find definition, find references
 """
 
 from pathlib import Path
-from typing import Dict, List, Any
-import tempfile
-import os
+from typing import List
 import uuid
 from multilspy import SyncLanguageServer
 from multilspy.multilspy_config import MultilspyConfig
 from multilspy.multilspy_logger import MultilspyLogger
+from multilspy.multilspy_types import Location, UnifiedSymbolInformation
 
 from lsp_repograph.core.lsp.jedi_language_server.custom_jedi_server import CustomJediServer
 
@@ -20,7 +19,7 @@ class MultilspyLSPClient:
     Provides three core APIs without result formatting
     """
     
-    def __init__(self, repo_path: str, custom_init_params: dict = None):
+    def __init__(self, repo_path: str, custom_init_params: dict | None = None):
         """
         Initialize MultilspyLSPClient with optional custom initialization parameters.
         
@@ -134,7 +133,7 @@ class MultilspyLSPClient:
     #         print(f"Error finding references: {e}")
     #         return []
     
-    def _is_in_venv(self, reference: Dict[str, Any]) -> bool:
+    def _is_in_venv(self, reference: Location) -> bool:
         """
         Check if a reference is in a virtual environment directory
         
@@ -177,7 +176,7 @@ class MultilspyLSPClient:
         
         return False
     
-    def search_ws_symbol_def(self, query: str) -> List[Dict[str, Any]]:
+    def search_ws_symbol_def(self, query: str) -> List[UnifiedSymbolInformation]:
         """
         Search for workspace symbol definitions
         
@@ -193,12 +192,13 @@ class MultilspyLSPClient:
         try:
             with self.server.start_server():
                 result = self.server.request_workspace_symbol(query)
+                breakpoint()
                 return result if isinstance(result, list) else []
         except Exception as e:
             print(f"Error searching workspace symbols: {e}")
             return []
     
-    def search_non_ws_symbol_def(self, library: str, symbol: str = None) -> List[Dict[str, Any]]:
+    def search_non_ws_symbol_def(self, library: str, symbol: str | None = None) -> List[Location]:
         """
         Search for non-workspace symbol definitions using scratch file approach
         
@@ -260,7 +260,7 @@ class MultilspyLSPClient:
             if scratch_path.exists():
                 scratch_path.unlink()
     
-    def search_non_workspace_library_symbol(self, library: str, symbol: str = None) -> List[Dict[str, Any]]:
+    def search_non_workspace_library_symbol(self, library: str, symbol: str | None = None) -> List[Location]:
         """
         Search for symbol definitions in standard library or third-party library
         
@@ -273,7 +273,7 @@ class MultilspyLSPClient:
         """
         return self.search_non_ws_symbol_def(library, symbol)
     
-    def search_builtins_symbol_def(self, symbol: str = None) -> List[Dict[str, Any]]:
+    def search_builtins_symbol_def(self, symbol: str | None = None) -> List[Location]:
         """
         Search for builtin symbol definitions
         
@@ -285,7 +285,7 @@ class MultilspyLSPClient:
         """
         return self.search_non_ws_symbol_def("builtins", symbol)
     
-    def find_non_ws_symbol_refs(self, library: str, symbol: str = None) -> List[Dict[str, Any]]:
+    def find_non_ws_symbol_refs(self, library: str, symbol: str | None = None) -> List[Location]:
         """
         Find references to non-workspace symbols using scratch file approach
         
@@ -350,7 +350,7 @@ class MultilspyLSPClient:
             if scratch_path.exists():
                 scratch_path.unlink()
     
-    def find_non_workspace_library_symbol_refs(self, library: str, symbol: str = None) -> List[Dict[str, Any]]:
+    def find_non_workspace_library_symbol_refs(self, library: str, symbol: str | None = None) -> List[Location]:
         """
         Find references to standard library or third-party library symbols
         
@@ -363,7 +363,7 @@ class MultilspyLSPClient:
         """
         return self.find_non_ws_symbol_refs(library, symbol)
     
-    def find_builtins_symbol_refs(self, symbol: str = None) -> List[Dict[str, Any]]:
+    def find_builtins_symbol_refs(self, symbol: str | None = None) -> List[Location]:
         """
         Find references to builtin symbols
         
@@ -375,7 +375,7 @@ class MultilspyLSPClient:
         """
         return self.find_non_ws_symbol_refs("builtins", symbol)
     
-    def find_ws_symbol_refs(self, query: str) -> List[Dict[str, Any]]:
+    def find_ws_symbol_refs(self, query: str) -> List[Location]:
         """
         Find references to workspace symbol by full path query
         
@@ -415,6 +415,9 @@ class MultilspyLSPClient:
                 
                 # Exactly one symbol found - get its location and find references
                 symbol = symbol_defs[0]
+                if 'location' not in symbol:
+                    print(f"Found symbol but can't find its location. Symbol is: {symbol}")
+                    return []
                 location = symbol['location']
                 
                 # Extract file path from URI
@@ -450,7 +453,7 @@ class MultilspyLSPClient:
             print(f"Error finding workspace symbol references: {e}")
             return []
     
-    def _is_scratch_file_ref(self, reference: Dict[str, Any], scratch_path: Path) -> bool:
+    def _is_scratch_file_ref(self, reference: Location, scratch_path: Path) -> bool:
         """
         Check if a reference is from the scratch file itself
         
@@ -469,7 +472,7 @@ class MultilspyLSPClient:
                 return True
         
         # Check relativePath field
-        if 'relativePath' in reference:
+        if 'relativePath' in reference and reference['relativePath'] is not None:
             # Convert to absolute path for comparison
             relative_abs = str(self.repo_path / reference['relativePath'])
             if relative_abs == scratch_path_str:
@@ -535,7 +538,7 @@ class MultilspyLSPClient:
     #     }
     #     return kinds.get(kind, "Unknown")
     
-    def find_methods(self, file_path: str, line: int, character: int) -> List[Dict[str, any]]:
+    def find_methods(self, file_path: str, line: int, character: int) -> List[Location]:
         """
         Find all methods of a class defined at position. 
         

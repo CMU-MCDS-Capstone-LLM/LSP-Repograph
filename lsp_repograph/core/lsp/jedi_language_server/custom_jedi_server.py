@@ -21,7 +21,7 @@ class CustomJediServer(LanguageServer):
     Provides Python specific instantiation of the LanguageServer class. Contains various configurations and settings specific to Python.
     """
 
-    def __init__(self, config: MultilspyConfig, logger: MultilspyLogger, repository_root_path: str, custom_init_params: dict = None):
+    def __init__(self, config: MultilspyConfig, logger: MultilspyLogger, repository_root_path: str, custom_init_params: dict | None = None):
         """
         Creates a JediServer instance with custom initialization parameters. For example, we can configure the included virtual environments
         
