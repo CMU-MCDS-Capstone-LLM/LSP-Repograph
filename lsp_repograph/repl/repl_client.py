@@ -86,11 +86,7 @@ class REPLClient:
             raise ValueError("Missing required config field: repo.path")
         
         # Extract LSP initialization parameters
-        lsp_config = config_dict.get('lsp', {})
-        init_params = {}
-        
-        if lsp_config:
-            init_params['initializationOptions'] = lsp_config
+        init_params = config_dict.get('lsp', {})
         
         return cls(repo_path, init_params)
     
