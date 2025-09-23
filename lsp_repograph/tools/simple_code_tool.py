@@ -14,12 +14,21 @@ class SimpleCodeTool:
     No text scanning - pure LSP approach for maximum performance
     """
     
-    def __init__(self, repo_path: str):
+    def __init__(self, repo_path: str, custom_init_params: dict = None):
         """
-        Initialize tool with repository path
+        Initialize tool with repository path and optional custom initialization parameters
         
         Args:
             repo_path: Path to repository to analyze
+            custom_init_params: Custom initialization parameters to override defaults.
+                               Example: {
+                                   "initializationOptions": {
+                                       "workspace": {
+                                           "extraPaths": ["/path/to/venv/site-packages"],
+                                           "environmentPath": "/path/to/venv/bin/python"
+                                       }
+                                   }
+                               }
         """
         self.repo_path = Path(repo_path).resolve()
         
@@ -27,7 +36,7 @@ class SimpleCodeTool:
             raise ValueError(f"Repository path does not exist: {repo_path}")
             
         print("Starting Jedi LSP server (Multilspy - Jedi Langauge Server)...")
-        self.lsp_client = MultilspyLSPClient(str(self.repo_path))
+        self.lsp_client = MultilspyLSPClient(str(self.repo_path), custom_init_params)
         self.formatter = MultilspyResultFormatter(str(self.repo_path))
         print("LSP server ready")
     

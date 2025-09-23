@@ -20,8 +20,24 @@ class MultilspyLSPClient:
     Provides three core APIs without result formatting
     """
     
-    def __init__(self, repo_path: str):
+    def __init__(self, repo_path: str, custom_init_params: dict = None):
+        """
+        Initialize MultilspyLSPClient with optional custom initialization parameters.
+        
+        Args:
+            repo_path: Path to repository root
+            custom_init_params: Custom initialization parameters to override defaults.
+                               Example: {
+                                   "initializationOptions": {
+                                       "workspace": {
+                                           "extraPaths": ["/path/to/venv/site-packages"],
+                                           "environmentPath": "/path/to/venv/bin/python"
+                                       }
+                                   }
+                               }
+        """
         self.repo_path = Path(repo_path).resolve()
+        self.custom_init_params = custom_init_params
         self.server = None
         self._initialize_multilspy()
     
@@ -35,7 +51,7 @@ class MultilspyLSPClient:
             logger = MultilspyLogger()
             
             # self.server = SyncLanguageServer.create(config, logger, str(self.repo_path))
-            self.server = SyncLanguageServer(CustomJediServer(config, logger, str(self.repo_path)), timeout=None)
+            self.server = SyncLanguageServer(CustomJediServer(config, logger, str(self.repo_path), self.custom_init_params), timeout=None)
             
         except Exception as e:
             raise RuntimeError(f"Failed to initialize multilspy: {e}")

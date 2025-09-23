@@ -21,9 +21,15 @@ class CustomJediServer(LanguageServer):
     Provides Python specific instantiation of the LanguageServer class. Contains various configurations and settings specific to Python.
     """
 
-    def __init__(self, config: MultilspyConfig, logger: MultilspyLogger, repository_root_path: str):
+    def __init__(self, config: MultilspyConfig, logger: MultilspyLogger, repository_root_path: str, custom_init_params: dict = None):
         """
         Creates a JediServer instance with custom initialization parameters. For example, we can configure the included virtual environments
+        
+        Args:
+            config: MultilspyConfig instance
+            logger: MultilspyLogger instance  
+            repository_root_path: Path to repository root
+            custom_init_params: Custom initialization parameters to override defaults
         """
         super().__init__(
             config,
@@ -32,10 +38,11 @@ class CustomJediServer(LanguageServer):
             ProcessLaunchInfo(cmd="jedi-language-server", cwd=repository_root_path),
             "python",
         )
+        self.custom_init_params = custom_init_params or {}
 
     def _get_initialize_params(self, repository_absolute_path: str) -> InitializeParams:
         """
-        Returns the initialize params for the Jedi Language Server.
+        Returns the initialize params for the Jedi Language Server with custom parameters applied.
         """
         with open(os.path.join(os.path.dirname(__file__), "initialize_params.json"), "r") as f:
             d = json.load(f)
@@ -55,7 +62,27 @@ class CustomJediServer(LanguageServer):
         assert d["workspaceFolders"][0]["name"] == "$name"
         d["workspaceFolders"][0]["name"] = os.path.basename(repository_absolute_path)
 
+        # Apply custom initialization parameters
+        if self.custom_init_params:
+            self._merge_custom_params(d, self.custom_init_params)
+
         return d
+
+    def _merge_custom_params(self, base_params: dict, custom_params: dict) -> None:
+        """
+        Recursively merge custom parameters into base parameters.
+        
+        Args:
+            base_params: Base initialization parameters to modify
+            custom_params: Custom parameters to merge in
+        """
+        for key, value in custom_params.items():
+            if key in base_params and isinstance(base_params[key], dict) and isinstance(value, dict):
+                # Recursively merge nested dictionaries
+                self._merge_custom_params(base_params[key], value)
+            else:
+                # Overwrite or add the parameter
+                base_params[key] = value
 
     @asynccontextmanager
     async def start_server(self) -> AsyncIterator["CustomJediServer"]:

@@ -15,6 +15,26 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 from lsp_repograph.core.multilspy_client import MultilspyLSPClient
 from typing import Dict, Any
 
+# Use sample_project as default repo
+CUSTOM_INIT_PARAMS = {
+    "initializationOptions": {
+        "workspace": {
+            "extraPaths": [
+                "/home/eiger/CMU/2025_Spring/11634_Capstone/playground/LSP-RepoGraph/demo/sample_project_with_venv/.venv/lib/python3.10/site-packages"
+            ],
+            "environmentPath": "/home/eiger/CMU/2025_Spring/11634_Capstone/playground/LSP-RepoGraph/demo/sample_project_with_venv/.venv/bin/python"
+        }
+    }
+}
+repo_path = "/home/eiger/CMU/2025_Fall/Capstone/2025-spring-capstone-progress/playground/LSP-RepoGraph-demo/sample_project_with_venv"
+
+# repo_path = os.path.join(os.path.dirname(__file__), "sample_project")
+# repo_path = os.path.join(os.path.dirname(__file__), "sample_project_no_venv")
+# repo_path = "/home/eiger/CMU/2025_Spring/11634_Capstone/playground/pymigbench/repos/twisted_twisted_e31995c9_parent"
+# repo_path = "/home/eiger/CMU/2025_Spring/11634_Capstone/playground/pymigbench/repos/ovirt_vdsm_6eef802a_parent"
+# repo_path = "/home/eiger/CMU/2025_Spring/11634_Capstone/playground/pymigbench/repos/toufool_auto-split_86244b6c_parent"
+
+
 
 def read_file_line(file_path: str, line_number: int) -> str:
     """Read a specific line from a file (0-indexed)"""
@@ -31,14 +51,9 @@ def read_file_line(file_path: str, line_number: int) -> str:
 def format_reference_with_content(ref: Dict[str, Any], repo_path: str) -> str:
     """Format a reference with its source line content"""
     # Extract file path (prefer absolutePath, fallback to relativePath)
-    if 'absolutePath' in ref:
-        file_path = ref['absolutePath']
-        rel_path = os.path.relpath(file_path, repo_path)
-    elif 'relativePath' in ref:
-        rel_path = ref['relativePath'] 
-        file_path = os.path.join(repo_path, rel_path)
-    else:
+    if 'absolutePath' not in ref:
         return str(ref)  # Fallback to raw output
+    file_path = ref['absolutePath']
     
     # Extract line/column info
     range_info = ref.get('range', {})
@@ -50,7 +65,7 @@ def format_reference_with_content(ref: Dict[str, Any], repo_path: str) -> str:
     line_content = read_file_line(file_path, line_num)
     
     # Format output
-    return f"{rel_path}:{line_num + 1}:{col_num + 1}: {line_content}"
+    return f"{file_path}:{line_num + 1}:{col_num + 1}: {line_content}"
 
 
 def print_help():
@@ -81,23 +96,19 @@ def print_help():
 
 
 def main():
-    # Use sample_project as default repo
-    # repo_path = os.path.join(os.path.dirname(__file__), "sample_project")
-    # repo_path = os.path.join(os.path.dirname(__file__), "sample_project_no_venv")
-    repo_path = "/home/eiger/CMU/2025_Fall/Capstone/2025-spring-capstone-progress/playground/LSP-RepoGraph-demo/sample_project_with_venv"
-    # repo_path = "/home/eiger/CMU/2025_Spring/11634_Capstone/playground/pymigbench/repos/twisted_twisted_e31995c9_parent"
-    # repo_path = "/home/eiger/CMU/2025_Spring/11634_Capstone/playground/pymigbench/repos/ovirt_vdsm_6eef802a_parent"
-    # repo_path = "/home/eiger/CMU/2025_Spring/11634_Capstone/playground/pymigbench/repos/toufool_auto-split_86244b6c_parent"
     
     if not os.path.exists(repo_path):
         print(f"Error: Sample project not found at {repo_path}")
         return
     
     print(f"Initializing JediLSPClient for repo: {repo_path}")
+    print("Using custom initialization parameters:")
+    pprint(CUSTOM_INIT_PARAMS)
     
     try:
-        client = MultilspyLSPClient(repo_path)
-        print("Client initialized successfully!")
+        # Pass custom initialization parameters to the client
+        client = MultilspyLSPClient(repo_path, CUSTOM_INIT_PARAMS)
+        print("Client initialized successfully with custom parameters!")
     except Exception as e:
         print(f"Failed to initialize client: {e}")
         return
