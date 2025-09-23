@@ -5,8 +5,6 @@ LSP-first approach using Pyright for semantic analysis
 
 from pathlib import Path
 from typing import List, Dict, Any
-from ..core.pyright_client import PyrightLSPClient
-from ..core.pyright_result_formatter import PyrightResultFormatter
 from ..core.multilspy_client import MultilspyLSPClient
 from ..core.multilspy_result_formatter import MultilspyResultFormatter
 
