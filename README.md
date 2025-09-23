@@ -95,9 +95,53 @@ In the future, I will make this into a python package to simplify the setup.
 
   This significantly helps with providing better prompt to ai agent, because the agent can know what to put in input and what to expect from output
 
-- [ ] When returning definition, return the range of definition (e.g. function foobar() is defined from line X to line Y), instead of only the location of definition name
+- [ ] When returning definition, besides location, we return extra information about the definition.
+
+  Fuck, let's just return def loc + hover text, and nothing else. Too complicated to do it the ast way.
+
+  When we find the location of definition with lsp, we use AST to parse the file containing def, and extract additional information
+
+  Different types of symbol (function, class, constant) in different context (workspace, non-workspace) have different extra info.
+
+  - hover info: all symbols
+
+    This can be returned by 'textDocument/hover'
+
+  - signature: function / method / class
+
+    - For function / method, we also include the function / method signature
+
+    - For class, we also include the list of methods
+
+  - range of full def: workspace function / method / class
+
+    For workspace symbol of function / method / class, we also include the range of the full source code of the definition
+
+    We restrict to workspace symbol b/c it makes no sense to provide source code to a third-party library function or a built-in method.
+
+  - source code of full def: workspace function / method / class
+
+    Same logic as range of full def
+
+  Implementation-wise, we define smth like `enrich_definition(loc: Location)`, which takes in def loc, convert the file into AST, and get the needed info.
+
+- [ ] Let user toggle what level of additional def info they want
+
+  - None
+  
+  - (default) containerName
+
+  - containerName, signature
+
+  - containerName, signature, range of full def
+
+  - containerName, signature, range of full def, content of full def
+
+- [ ] Update how repl print the definition with the additional def info to be more informative
 
 - [ ] implement "contains" relationship for classes
+
+- [ ] Let user specify how many lines before & after the location of ref do they want to see. E.g. I want to see 3 lines before and after the ref loc.
 
 - [ ] Integrate with SWE-Agent as a tool
 
