@@ -83,6 +83,16 @@ In the future, I will make this into a python package to simplify the setup.
 
     We need to pass in repo env to jedi-language-server, and exclude the lsp-repograph env (exclusion is also need to avoid conflicts between repo env and lsp-repograph env, say when both uses numpy but in diff versions)
 
+    We need a way to modify the init params passed to jedi-language-server in multilspy
+
+    - [x] Create a custom jedi server by copying from the original jedi server's code
+
+    - [ ] Parametrize the custom jedi server with init param
+
+- [ ] Make the return value in simple-coding-tools typed. Define data classes repr the returned value
+
+  This significantly helps with providing better prompt to ai agent.
+
 - [ ] Integrate with SWE-Agent as a tool
 
 ## Overview

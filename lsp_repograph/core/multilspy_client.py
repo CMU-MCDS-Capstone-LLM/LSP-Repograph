@@ -12,6 +12,7 @@ from multilspy import SyncLanguageServer
 from multilspy.multilspy_config import MultilspyConfig
 from multilspy.multilspy_logger import MultilspyLogger
 
+from lsp_repograph.core.lsp.jedi_language_server.custom_jedi_server import CustomJediServer
 
 class MultilspyLSPClient:
     """
@@ -33,7 +34,8 @@ class MultilspyLSPClient:
             })
             logger = MultilspyLogger()
             
-            self.server = SyncLanguageServer.create(config, logger, str(self.repo_path))
+            # self.server = SyncLanguageServer.create(config, logger, str(self.repo_path))
+            self.server = SyncLanguageServer(CustomJediServer(config, logger, str(self.repo_path)), timeout=None)
             
         except Exception as e:
             raise RuntimeError(f"Failed to initialize multilspy: {e}")
