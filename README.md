@@ -91,7 +91,7 @@ In the future, I will make this into a python package to simplify the setup.
 
 - [ ] Make the return value in simple-coding-tools typed. Define data classes repr the returned value
 
-  This significantly helps with providing better prompt to ai agent.
+  This significantly helps with providing better prompt to ai agent, because the agent can know what to put in input and what to expect from output
 
 - [ ] Integrate with SWE-Agent as a tool
 
