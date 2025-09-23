@@ -1,4 +1,6 @@
 __pycache__/
 venv/
 .venv/
-examples/sample_project*/
+example/
+demo/
+*.egg-info/

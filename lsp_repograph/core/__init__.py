@@ -2,7 +2,7 @@
 Core components for LSP-based code search
 """
 
-from .pyright_client import PyrightLSPClient
-from .pyright_result_formatter import PyrightResultFormatter
+from .multilspy_client import MultilspyLSPClient
+from .multilspy_result_formatter import MultilspyResultFormatter
 
-__all__ = ['PyrightLSPClient', 'PyrightResultFormatter']
+__all__ = ['MultilspyLSPClient', 'MultilspyResultFormatter']
