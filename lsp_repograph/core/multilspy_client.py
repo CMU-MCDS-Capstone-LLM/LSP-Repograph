@@ -56,83 +56,83 @@ class MultilspyLSPClient:
         except Exception as e:
             raise RuntimeError(f"Failed to initialize multilspy: {e}")
     
-    def search_symbol(self, query: str) -> List[Dict[str, Any]]:
-        """
-        Search for symbols across entire workspace
-        
-        Args:
-            query: Symbol name to search for
-            
-        Returns:
-            Raw multilspy workspace symbol results
-        """
-        if not self.server:
-            return []
-            
-        try:
-            with self.server.start_server():
-                result = self.server.request_workspace_symbol(query)
-                return result if isinstance(result, list) else []
-        except Exception as e:
-            print(f"Error in symbol search: {e}")
-            return []
-        
-    def find_definition(self, file_path: str, line: int, character: int) -> List[Dict[str, Any]]:
-        """
-        Find definition at specific position
-        
-        Args:
-            file_path: Absolute path to file
-            line: 0-indexed line number
-            character: 0-indexed character position
-            
-        Returns:
-            Raw multilspy definition results
-        """
-        if not self.server:
-            return []
-            
-        try:
-            with self.server.start_server():
-                result = self.server.request_definition(file_path, line, character)
-                return result if isinstance(result, list) else []
-        except Exception as e:
-            print(f"Error finding definition: {e}")
-            return []
-    
-    def find_references(self, file_path: str, line: int, character: int) -> List[Dict[str, Any]]:
-        """
-        Find all references to symbol at position
-        
-        Args:
-            file_path: Absolute path to file
-            line: 0-indexed line number  
-            character: 0-indexed character position
-            
-        Returns:
-            Filtered multilspy reference results (excludes venv directories)
-        """
-        if not self.server:
-            return []
-            
-        try:
-            with self.server.start_server():
-                result = self.server.request_references(file_path, line, character)
-                if not isinstance(result, list):
-                    return []
-                
-                # Filter out references from venv directories
-                filtered_result = []
-                for ref in result:
-                    # Check if reference is in venv directory
-                    if self._is_in_venv(ref):
-                        continue
-                    filtered_result.append(ref)
-                
-                return filtered_result
-        except Exception as e:
-            print(f"Error finding references: {e}")
-            return []
+    # def search_symbol(self, query: str) -> List[Dict[str, Any]]:
+    #     """
+    #     Search for symbols across entire workspace
+    #
+    #     Args:
+    #         query: Symbol name to search for
+    #
+    #     Returns:
+    #         Raw multilspy workspace symbol results
+    #     """
+    #     if not self.server:
+    #         return []
+    #
+    #     try:
+    #         with self.server.start_server():
+    #             result = self.server.request_workspace_symbol(query)
+    #             return result if isinstance(result, list) else []
+    #     except Exception as e:
+    #         print(f"Error in symbol search: {e}")
+    #         return []
+    #
+    # def find_definition(self, file_path: str, line: int, character: int) -> List[Dict[str, Any]]:
+    #     """
+    #     Find definition at specific position
+    #
+    #     Args:
+    #         file_path: Absolute path to file
+    #         line: 0-indexed line number
+    #         character: 0-indexed character position
+    #
+    #     Returns:
+    #         Raw multilspy definition results
+    #     """
+    #     if not self.server:
+    #         return []
+    #
+    #     try:
+    #         with self.server.start_server():
+    #             result = self.server.request_definition(file_path, line, character)
+    #             return result if isinstance(result, list) else []
+    #     except Exception as e:
+    #         print(f"Error finding definition: {e}")
+    #         return []
+    #
+    # def find_references(self, file_path: str, line: int, character: int) -> List[Dict[str, Any]]:
+    #     """
+    #     Find all references to symbol at position
+    #
+    #     Args:
+    #         file_path: Absolute path to file
+    #         line: 0-indexed line number  
+    #         character: 0-indexed character position
+    #
+    #     Returns:
+    #         Filtered multilspy reference results (excludes venv directories)
+    #     """
+    #     if not self.server:
+    #         return []
+    #
+    #     try:
+    #         with self.server.start_server():
+    #             result = self.server.request_references(file_path, line, character)
+    #             if not isinstance(result, list):
+    #                 return []
+    #
+    #             # Filter out references from venv directories
+    #             filtered_result = []
+    #             for ref in result:
+    #                 # Check if reference is in venv directory
+    #                 if self._is_in_venv(ref):
+    #                     continue
+    #                 filtered_result.append(ref)
+    #
+    #             return filtered_result
+    #     except Exception as e:
+    #         print(f"Error finding references: {e}")
+    #         return []
     
     def _is_in_venv(self, reference: Dict[str, Any]) -> bool:
         """
@@ -485,55 +485,55 @@ class MultilspyLSPClient:
         
         return False
     
-    def _find_symbol_type_at_location(self, doc_symbols: List[Dict], target_definition: Dict) -> str:
-        """
-        Find symbol type by matching location in document symbols
-        
-        Args:
-            doc_symbols: Document symbols from LSP
-            target_definition: Definition location to match
-            
-        Returns:
-            Symbol type string or "Unknown"
-        """
-        if not doc_symbols or 'range' not in target_definition:
-            return "Unknown"
-        
-        target_range = target_definition['range']
-        target_line = target_range['start']['line']
-        target_char = target_range['start']['character']
-        
-        def search_symbols(symbols):
-            for symbol in symbols:
-                if 'range' in symbol:
-                    symbol_range = symbol['range']
-                    symbol_line = symbol_range['start']['line']
-                    symbol_char = symbol_range['start']['character']
-                    
-                    # Check if this symbol matches the target location
-                    if symbol_line == target_line and symbol_char == target_char:
-                        return self._format_symbol_kind(symbol.get('kind', 1))
-                    
-                    # Check nested symbols (children)
-                    if 'children' in symbol:
-                        result = search_symbols(symbol['children'])
-                        if result != "Unknown":
-                            return result
-            return "Unknown"
-        
-        return search_symbols(doc_symbols)
+    # def _find_symbol_type_at_location(self, doc_symbols: List[Dict], target_definition: Dict) -> str:
+    #     """
+    #     Find symbol type by matching location in document symbols
+    #
+    #     Args:
+    #         doc_symbols: Document symbols from LSP
+    #         target_definition: Definition location to match
+    #
+    #     Returns:
+    #         Symbol type string or "Unknown"
+    #     """
+    #     if not doc_symbols or 'range' not in target_definition:
+    #         return "Unknown"
+    #
+    #     target_range = target_definition['range']
+    #     target_line = target_range['start']['line']
+    #     target_char = target_range['start']['character']
+    #
+    #     def search_symbols(symbols):
+    #         for symbol in symbols:
+    #             if 'range' in symbol:
+    #                 symbol_range = symbol['range']
+    #                 symbol_line = symbol_range['start']['line']
+    #                 symbol_char = symbol_range['start']['character']
+    #
+    #                 # Check if this symbol matches the target location
+    #                 if symbol_line == target_line and symbol_char == target_char:
+    #                     return self._format_symbol_kind(symbol.get('kind', 1))
+    #
+    #                 # Check nested symbols (children)
+    #                 if 'children' in symbol:
+    #                     result = search_symbols(symbol['children'])
+    #                     if result != "Unknown":
+    #                         return result
+    #         return "Unknown"
+    #
+    #     return search_symbols(doc_symbols)
     
-    def _format_symbol_kind(self, kind: int) -> str:
-        """Convert LSP symbol kind number to string"""
-        kinds = {
-            1: "File", 2: "Module", 3: "Namespace", 4: "Package", 5: "Class",
-            6: "Method", 7: "Property", 8: "Field", 9: "Constructor", 10: "Enum",
-            11: "Interface", 12: "Function", 13: "Variable", 14: "Constant",
-            15: "String", 16: "Number", 17: "Boolean", 18: "Array", 19: "Object",
-            20: "Key", 21: "Null", 22: "EnumMember", 23: "Struct", 24: "Event",
-            25: "Operator", 26: "TypeParameter"
-        }
-        return kinds.get(kind, "Unknown")
+    # def _format_symbol_kind(self, kind: int) -> str:
+    #     """Convert LSP symbol kind number to string"""
+    #     kinds = {
+    #         1: "File", 2: "Module", 3: "Namespace", 4: "Package", 5: "Class",
+    #         6: "Method", 7: "Property", 8: "Field", 9: "Constructor", 10: "Enum",
+    #         11: "Interface", 12: "Function", 13: "Variable", 14: "Constant",
+    #         15: "String", 16: "Number", 17: "Boolean", 18: "Array", 19: "Object",
+    #         20: "Key", 21: "Null", 22: "EnumMember", 23: "Struct", 24: "Event",
+    #         25: "Operator", 26: "TypeParameter"
+    #     }
+    #     return kinds.get(kind, "Unknown")
     
     def find_methods(self, file_path: str, line: int, character: int) -> List[Dict[str, any]]:
         """
