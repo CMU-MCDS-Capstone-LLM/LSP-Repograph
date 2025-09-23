@@ -71,6 +71,18 @@ In the future, I will make this into a python package to simplify the setup.
 
 - [ ] Make it into a python package
 
+  - [x] Setup to install from local
+
+  - [ ] Pass in environment of target repo, instead of relying on the python interpreter that is used to run lsp-repograph
+
+    When running lsp-repograph against a repo, there are two python environments here
+
+    - lsp-repograph env: the env of lsp-repograph, which mainly contains multilspy.
+
+    - repo env: the env of the repo, which contains whatever is needed to execute code in the repo.
+
+    We need to pass in repo env to jedi-language-server, and exclude the lsp-repograph env (exclusion is also need to avoid conflicts between repo env and lsp-repograph env, say when both uses numpy but in diff versions)
+
 - [ ] Integrate with SWE-Agent as a tool
 
 ## Overview
@@ -245,4 +257,3 @@ python examples/demo.py
 ## License
 
 MIT License
-
