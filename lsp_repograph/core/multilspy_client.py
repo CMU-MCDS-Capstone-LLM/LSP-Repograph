@@ -76,62 +76,63 @@ class MultilspyLSPClient:
     #         print(f"Error in symbol search: {e}")
     #         return []
     #
-    # def find_definition(self, file_path: str, line: int, character: int) -> List[Dict[str, Any]]:
-    #     """
-    #     Find definition at specific position
-    #
-    #     Args:
-    #         file_path: Absolute path to file
-    #         line: 0-indexed line number
-    #         character: 0-indexed character position
-    #
-    #     Returns:
-    #         Raw multilspy definition results
-    #     """
-    #     if not self.server:
-    #         return []
-    #
-    #     try:
-    #         with self.server.start_server():
-    #             result = self.server.request_definition(file_path, line, character)
-    #             return result if isinstance(result, list) else []
-    #     except Exception as e:
-    #         print(f"Error finding definition: {e}")
-    #         return []
-    #
-    # def find_references(self, file_path: str, line: int, character: int) -> List[Dict[str, Any]]:
-    #     """
-    #     Find all references to symbol at position
-    #
-    #     Args:
-    #         file_path: Absolute path to file
-    #         line: 0-indexed line number  
-    #         character: 0-indexed character position
-    #
-    #     Returns:
-    #         Filtered multilspy reference results (excludes venv directories)
-    #     """
-    #     if not self.server:
-    #         return []
-    #
-    #     try:
-    #         with self.server.start_server():
-    #             result = self.server.request_references(file_path, line, character)
-    #             if not isinstance(result, list):
-    #                 return []
-    #
-    #             # Filter out references from venv directories
-    #             filtered_result = []
-    #             for ref in result:
-    #                 # Check if reference is in venv directory
-    #                 if self._is_in_venv(ref):
-    #                     continue
-    #                 filtered_result.append(ref)
-    #
-    #             return filtered_result
-    #     except Exception as e:
-    #         print(f"Error finding references: {e}")
-    #         return []
+
+    def find_definition(self, file_path: str, line: int, character: int) -> List[Location]:
+        """
+        Find definition at specific position
+
+        Args:
+            file_path: Absolute path to file
+            line: 0-indexed line number
+            character: 0-indexed character position
+
+        Returns:
+            Raw multilspy definition results
+        """
+        if not self.server:
+            return []
+
+        try:
+            with self.server.start_server():
+                result = self.server.request_definition(file_path, line, character)
+                return result if isinstance(result, list) else []
+        except Exception as e:
+            print(f"Error finding definition: {e}")
+            return []
+
+    def find_references(self, file_path: str, line: int, character: int) -> List[Location]:
+        """
+        Find all references to symbol at position
+
+        Args:
+            file_path: Absolute path to file
+            line: 0-indexed line number  
+            character: 0-indexed character position
+
+        Returns:
+            Filtered multilspy reference results (excludes venv directories)
+        """
+        if not self.server:
+            return []
+
+        try:
+            with self.server.start_server():
+                result = self.server.request_references(file_path, line, character)
+                if not isinstance(result, list):
+                    return []
+
+                # Filter out references from venv directories
+                filtered_result = []
+                for ref in result:
+                    # Check if reference is in venv directory
+                    if self._is_in_venv(ref):
+                        continue
+                    filtered_result.append(ref)
+
+                return filtered_result
+        except Exception as e:
+            print(f"Error finding references: {e}")
+            return []
     
     def _is_in_venv(self, reference: Location) -> bool:
         """
