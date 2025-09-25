@@ -95,9 +95,13 @@ In the future, I will make this into a python package to simplify the setup.
 
   This significantly helps with providing better prompt to ai agent, because the agent can know what to put in input and what to expect from output
 
+- [ ] make the argument named, such as "find-ws-refs --type "
+
+- [ ] Support searching for "module usage"
+
 - [ ] When returning definition, besides location, we return extra information about the definition.
 
-  Fuck, let's just return def loc + hover text, and nothing else. Too complicated to do it the ast way.
+  Fuck, let's just return def loc + hover text, and nothing else.
 
   When we find the location of definition with lsp, we use AST to parse the file containing def, and extract additional information
 
