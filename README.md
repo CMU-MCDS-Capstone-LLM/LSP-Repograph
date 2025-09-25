@@ -6,19 +6,52 @@ A high-performance, semantic code search tool for AI agents using Pyright LSP se
 
 To run the demo, follow these steps
 
-- Install requirements with
+1. Change directory to the demo
 
 ```bash
-pip install -r requirements.txt
+cd "<absolute path to LSP-RepoGraph repo>"
+cd demo/demo
 ```
 
-- Run the demo
+2. Install the LSP-RepoGraph dependency (optionally in a virtual environment)
 
 ```bash
-python examples/demo-multilspy-clients.py
+pip install -e "<absolute path to LSP-RepoGraph repo>"
 ```
 
-In the future, I will make this into a python package to simplify the setup.
+3. Modify the config at `demo/demo/config/sample_project_with_venv.toml` to include absolute path to repo, python intepreter, and environment. For example,
+
+  ```toml
+  [repo]
+  path = "/home/eiger/CMU/2025_Fall/Capstone/workspace/playground/LSP-RepoGraph-demo/sample_project_with_venv"
+
+  [lsp.initializationOptions.workspace]
+  extraPaths = [
+      "/home/eiger/CMU/2025_Spring/11634_Capstone/playground/LSP-RepoGraph/demo/sample_project_with_venv/.venv/lib/python3.10/site-packages"
+  ]
+  environmentPath = "/home/eiger/CMU/2025_Spring/11634_Capstone/playground/LSP-RepoGraph/demo/sample_project_with_venv/.venv/bin/python"
+  ```
+
+  It's important that we specify path to python interpreter and environment. Without them, we can't find def / refs for symbols in third-party libraries like `numpy.average`
+
+4. Run the demo. Details of demo is shown in the help message, and in the "Interactive Demo" section below.
+
+```bash
+python demo.py
+```
+
+### Interactive Demo
+
+Run the interactive REPL demo:
+
+Try these commands:
+
+- `find-def-by-fqn --module collections --qualpath deque.popleft`
+- `find-def-by-fqn --module numpy`
+- `find-refs-by-fqn --module numpy --qualpath average`
+- `find-def-by-fqn --module collections`
+- `find-def-by-loc --rel_path main.py --line 18 --character 14`
+- `find-refs-by-loc --rel_path main.py --line 14 --character 14`
 
 ## TODO
 
@@ -202,22 +235,6 @@ references_from_loc = tool.find_refs_by_loc("app/io_utils.py", line=42, characte
 tool.shutdown()
 ```
 
-## Interactive Demo
-
-Run the interactive REPL demo:
-
-```bash
-cd examples
-python demo.py
-```
-
-Try these commands:
-
-- `find-def-by-fqn --module collections --qualpath deque.popleft`
-- `find-refs-by-fqn --module pathlib --qualpath Path.read_text`
-- `find-def-by-loc --rel_path sample_project/main.py --line 12 --character 8`
-- `find-refs-by-loc --rel_path sample_project/main.py --line 12 --character 8`
-
 ## API Reference
 
 ### SimpleCodeTool
@@ -267,60 +284,6 @@ Resolve a definition from a repo-relative file path plus zero-based location.
 #### `find_refs_by_loc(rel_path: str, line: int, character: int) -> List[Dict]`
 
 Return references for the symbol under the cursor at the supplied location.
-
-## Architecture
-
-### LSP-First Approach
-
-Unlike text-scanning tools, LSP-RepoGraph uses Pyright's workspace symbol search:
-
-1. **Workspace Symbol Search**: Find definitions using `workspace/symbol` LSP request
-2. **Reference Lookup**: For each definition, get references using `textDocument/references`
-3. **Result Formatting**: Convert LSP responses to consistent format
-
-### Performance Benefits
-
-| Operation | Text Scanning | LSP-First |
-|-----------|---------------|-----------|
-| **Cold start** | Scan all files | Use Pyright index |
-| **Symbol search** | O(total lines) | O(symbol occurrences) |
-| **Incremental updates** | Rescan everything | Automatic |
-
-## Requirements
-
-- Python 3.8+
-- Pyright language server (`pip install pyright`)
-
-## Development
-
-```bash
-# Clone and install in development mode
-git clone <repo>
-cd LSP-RepoGraph
-pip install -e .
-
-# Run tests
-python -m pytest
-
-# Run demo
-python examples/demo.py
-```
-
-## Limitations
-
-- **Python only**: Currently supports Python projects only
-- **Pyright dependency**: Requires Pyright LSP server installation
-- **Startup time**: Initial LSP server startup takes ~1-2 seconds
-
-## Comparison with RepoGraph
-
-| Feature | RepGraph | LSP-RepoGraph |
-|---------|----------|---------------|
-| **Approach** | Graph construction + text search | Pure LSP |
-| **Performance** | Slow (full repo scan) | Fast (indexed search) |
-| **Accuracy** | Medium (text matching) | High (semantic analysis) |
-| **Incremental** | Manual cache management | Automatic |
-| **Setup** | Complex (graph construction) | Simple (pip install) |
 
 ## License
 
