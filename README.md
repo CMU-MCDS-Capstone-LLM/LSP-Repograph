@@ -50,8 +50,8 @@ Try these commands:
 - `find-def-by-fqn --module numpy`
 - `find-refs-by-fqn --module numpy --qualpath average`
 - `find-def-by-fqn --module collections`
-- `find-def-by-loc --rel_path main.py --line 18 --character 14`
-- `find-refs-by-loc --rel_path main.py --line 14 --character 14`
+- `find-def-by-loc --path main.py --line 18 --character 14`
+- `find-refs-by-loc --path main.py --line 14 --character 14`
 
 ## TODO
 
@@ -227,9 +227,9 @@ definition = tool.find_def_by_fqn("collections", "deque.popleft")
 # Find references by fully-qualified name
 references = tool.find_refs_by_fqn("pathlib", "Path.read_text")
 
-# Use a repo-relative location (0-indexed line/character)
-definition_from_loc = tool.find_def_by_loc("app/io_utils.py", line=42, character=25)
-references_from_loc = tool.find_refs_by_loc("app/io_utils.py", line=42, character=25)
+# Use a file location (relative or absolute path, 0-indexed line/character)
+definition_from_loc = tool.find_def_by_loc(path="app/io_utils.py", line=42, character=25)
+references_from_loc = tool.find_refs_by_loc(path="app/io_utils.py", line=42, character=25)
 
 # Cleanup
 tool.shutdown()
@@ -277,11 +277,11 @@ Resolve references for the symbol identified by `<module>:<qualpath>`.
 ]
 ```
 
-#### `find_def_by_loc(rel_path: str, line: int, character: int, with_hover_msg: bool = True) -> Dict`
+#### `find_def_by_loc(path: str, line: int, character: int, with_hover_msg: bool = True) -> Optional[DefinitionResult]`
 
-Resolve a definition from a repo-relative file path plus zero-based location.
+Resolve a definition from a file path (relative or absolute) plus zero-based location.
 
-#### `find_refs_by_loc(rel_path: str, line: int, character: int) -> List[Dict]`
+#### `find_refs_by_loc(path: str, line: int, character: int) -> List[ReferenceResult]`
 
 Return references for the symbol under the cursor at the supplied location.
 

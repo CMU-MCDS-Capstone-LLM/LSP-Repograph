@@ -113,15 +113,15 @@ class MultilspyLSPClient:
     def find_def_by_loc(
         self,
         *,
-        rel_path: str,
+        path: str,
         line: int,
         character: int,
         with_hover_msg: bool = True,
     ) -> Optional[DefinitionResult]:
-        """Find the definition pointed to by a repo-relative file location."""
-        abs_path = self.repo_path / rel_path
+        """Find the definition pointed to by a file location (relative or absolute path)."""
+        abs_path = self._resolve_path(path)
         if not abs_path.exists():
-            raise FileNotFoundError(f"File not found: {rel_path}")
+            raise FileNotFoundError(f"File not found: {abs_path}")
 
         return self._definition_from_position(
             str(abs_path),
@@ -133,20 +133,28 @@ class MultilspyLSPClient:
     def find_refs_by_loc(
         self,
         *,
-        rel_path: str,
+        path: str,
         line: int,
         character: int,
     ) -> List[ReferenceResult]:
-        """Find all references for the symbol at a repo-relative file location."""
-        abs_path = self.repo_path / rel_path
+        """Find all references for the symbol at a file location (relative or absolute path)."""
+        abs_path = self._resolve_path(path)
         if not abs_path.exists():
-            raise FileNotFoundError(f"File not found: {rel_path}")
+            raise FileNotFoundError(f"File not found: {abs_path}")
 
         return self._references_from_position(str(abs_path), line, character)
 
     # ------------------------------------------------------------------
     # Internal helpers
     # ------------------------------------------------------------------
+
+    def _resolve_path(self, path: str) -> Path:
+        """Convert relative or absolute path to absolute Path object."""
+        path_obj = Path(path)
+        if path_obj.is_absolute():
+            return path_obj
+        else:
+            return self.repo_path / path_obj
 
     @contextmanager
     def _scratch_file(self, content: str, target_line: int, target_char: int) -> Iterable[Tuple[Path, int, int]]:
