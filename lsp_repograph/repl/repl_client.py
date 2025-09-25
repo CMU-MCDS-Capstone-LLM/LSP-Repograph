@@ -96,10 +96,10 @@ class REPLClient:
         print("  • File paths are relative to the repo root")
         print("  • Line and character inputs are 0-indexed (LSP style)")
         print("  • FQN format: <module>:<qualpath>, e.g. pathlib:Path.read_text")
-        print("Examples:")
-        
-        for cmd in self.commands:
-            print(f"  {cmd.example}")
+
+        # print("Examples:")
+        # for cmd in self.commands:
+        #     print(f"  {cmd.example}")
     
     def execute_command(self, command_line: str):
         """Execute a command from the command line input"""

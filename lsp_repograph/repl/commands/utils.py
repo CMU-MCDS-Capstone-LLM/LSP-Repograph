@@ -1,39 +1,7 @@
 from __future__ import annotations
 
-from typing import Dict, Iterable, Tuple
+from typing import Tuple
 
-
-def parse_flag_args(args: Iterable[str]) -> Dict[str, str]:
-    """Parse `--key value` pairs from the REPL command arguments."""
-    result: Dict[str, str] = {}
-    iterator = iter(args)
-
-    for token in iterator:
-        if not token.startswith("--"):
-            raise ValueError(f"Unexpected token '{token}'. Flags must start with '--'.")
-
-        key = token[2:]
-        try:
-            value = next(iterator)
-        except StopIteration as exc:  # pragma: no cover - validated via REPL usage
-            raise ValueError(f"Missing value for flag '--{key}'") from exc
-
-        result[key] = value
-
-    return result
-
-
-def parse_bool(value: str | None, *, default: bool) -> bool:
-    """Convert common string representations of booleans to bool."""
-    if value is None:
-        return default
-
-    lowered = value.strip().lower()
-    if lowered in {"true", "1", "yes", "y"}:
-        return True
-    if lowered in {"false", "0", "no", "n"}:
-        return False
-    raise ValueError(f"Invalid boolean value: {value}")
 
 
 def read_file_line(file_path: str, line_number: int) -> str:

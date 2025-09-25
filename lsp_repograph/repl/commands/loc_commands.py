@@ -1,10 +1,21 @@
 from __future__ import annotations
 
+import argparse
 from typing import List
 
 from .base import Command
-from .utils import format_location_for_display, parse_bool, parse_flag_args
+from .utils import format_location_for_display
 from lsp_repograph.core.multilspy_client import MultilspyLSPClient
+
+
+def str2bool(v: str) -> bool:
+    """Convert string to boolean for argparse."""
+    if v.lower() in {'true', '1', 'yes', 'y'}:
+        return True
+    elif v.lower() in {'false', '0', 'no', 'n'}:
+        return False
+    else:
+        raise argparse.ArgumentTypeError(f'Boolean value expected, got: {v}')
 
 
 class FindDefByLocCommand(Command):
@@ -16,53 +27,37 @@ class FindDefByLocCommand(Command):
 
     @property
     def description(self) -> str:  # pragma: no cover
-        return "Resolve definition from a repo-relative file position (hover optional)."
+        return "Resolve definition from a file position (relative or absolute path, hover optional)."
 
-    @property
-    def usage(self) -> str:  # pragma: no cover
-        return "find-def-by-loc --rel_path <rel_path> --line <line> --character <character> [--with_hover_msg <bool>]"
-
-    @property
-    def example(self) -> str:  # pragma: no cover
-        return "find-def-by-loc --rel_path app/io_utils.py --line 42 --character 25"
+    def get_parser(self) -> argparse.ArgumentParser:
+        parser = argparse.ArgumentParser(
+            prog=self.name,
+            description=self.description,
+            add_help=False
+        )
+        parser.add_argument('--path', required=True,
+                          help='File path (relative or absolute)')
+        parser.add_argument('--line', type=int, required=True,
+                          help='Line number (0-indexed)')
+        parser.add_argument('--character', type=int, required=True,
+                          help='Character position (0-indexed)')
+        parser.add_argument('--with_hover_msg', type=str2bool, default=True,
+                          help='Include hover text (true/false, default: true)')
+        return parser
 
     def execute(self, client: MultilspyLSPClient, args: List[str]) -> None:
         try:
-            flags = parse_flag_args(args)
-        except ValueError as exc:
-            print(f"Error: {exc}")
-            print(f"Usage: {self.usage}")
-            return
-
-        rel_path = flags.get("rel_path")
-        line_str = flags.get("line")
-        char_str = flags.get("character")
-
-        try:
-            with_hover = parse_bool(flags.get("with_hover_msg"), default=True)
-        except ValueError as exc:
-            print(f"Error: {exc}")
-            print(f"Usage: {self.usage}")
-            return
-
-        if not rel_path or line_str is None or char_str is None:
-            print("Error: --rel_path, --line, and --character flags are required")
-            print(f"Usage: {self.usage}")
-            return
-
-        try:
-            line = int(line_str)
-            character = int(char_str)
-        except ValueError:
-            print("Error: --line and --character must be integers")
+            parsed_args = self.get_parser().parse_args(args)
+        except SystemExit:
+            # argparse calls sys.exit on error, we catch this to prevent REPL from exiting
             return
 
         try:
             result = client.find_def_by_loc(
-                rel_path=rel_path,
-                line=line,
-                character=character,
-                with_hover_msg=with_hover,
+                path=parsed_args.path,
+                line=parsed_args.line,
+                character=parsed_args.character,
+                with_hover_msg=parsed_args.with_hover_msg,
             )
         except Exception as exc:  # pragma: no cover
             print("No definition found for the supplied location")
@@ -87,7 +82,7 @@ class FindDefByLocCommand(Command):
         print(content)
 
         hover_text = result.get("hover_text")
-        if with_hover and hover_text:
+        if parsed_args.with_hover_msg and hover_text:
             print("\nHover Text:")
             print(hover_text)
 
@@ -101,42 +96,35 @@ class FindRefsByLocCommand(Command):
 
     @property
     def description(self) -> str:  # pragma: no cover
-        return "List all references for the symbol at a repo-relative file position."
+        return "List all references for the symbol at a file position (relative or absolute path)."
 
-    @property
-    def usage(self) -> str:  # pragma: no cover
-        return "find-refs-by-loc --rel_path <rel_path> --line <line> --character <character>"
-
-    @property
-    def example(self) -> str:  # pragma: no cover
-        return "find-refs-by-loc --rel_path app/io_utils.py --line 42 --character 25"
+    def get_parser(self) -> argparse.ArgumentParser:
+        parser = argparse.ArgumentParser(
+            prog=self.name,
+            description=self.description,
+            add_help=False
+        )
+        parser.add_argument('--path', required=True,
+                          help='File path (relative or absolute)')
+        parser.add_argument('--line', type=int, required=True,
+                          help='Line number (0-indexed)')
+        parser.add_argument('--character', type=int, required=True,
+                          help='Character position (0-indexed)')
+        return parser
 
     def execute(self, client: MultilspyLSPClient, args: List[str]) -> None:
         try:
-            flags = parse_flag_args(args)
-        except ValueError as exc:
-            print(f"Error: {exc}")
-            print(f"Usage: {self.usage}")
-            return
-
-        rel_path = flags.get("rel_path")
-        line_str = flags.get("line")
-        char_str = flags.get("character")
-
-        if not rel_path or line_str is None or char_str is None:
-            print("Error: --rel_path, --line, and --character flags are required")
-            print(f"Usage: {self.usage}")
+            parsed_args = self.get_parser().parse_args(args)
+        except SystemExit:
+            # argparse calls sys.exit on error, we catch this to prevent REPL from exiting
             return
 
         try:
-            line = int(line_str)
-            character = int(char_str)
-        except ValueError:
-            print("Error: --line and --character must be integers")
-            return
-
-        try:
-            references = client.find_refs_by_loc(rel_path=rel_path, line=line, character=character)
+            references = client.find_refs_by_loc(
+                path=parsed_args.path,
+                line=parsed_args.line,
+                character=parsed_args.character
+            )
         except Exception as exc:  # pragma: no cover
             print(f"Error executing reference lookup: {exc}")
             return
@@ -144,9 +132,9 @@ class FindRefsByLocCommand(Command):
         print(
             "Found {count} references for location {path}:{line}:{char}".format(
                 count=len(references),
-                path=rel_path,
-                line=line,
-                char=character,
+                path=parsed_args.path,
+                line=parsed_args.line,
+                char=parsed_args.character,
             )
         )
 
