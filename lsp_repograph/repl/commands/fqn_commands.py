@@ -53,7 +53,7 @@ class FindDefByFqnCommand(Command):
         try:
             result = client.find_def_by_fqn(module=module, qualpath=qualpath, with_hover_msg=with_hover)
         except Exception as exc:  # pragma: no cover - surfaces runtime issues to user
-            print(f"Error executing definition lookup: {exc}")
+            print(f"No definition found for {symbol_display}")
             return
 
         if not result:

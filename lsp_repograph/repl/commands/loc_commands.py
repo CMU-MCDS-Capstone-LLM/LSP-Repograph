@@ -65,7 +65,7 @@ class FindDefByLocCommand(Command):
                 with_hover_msg=with_hover,
             )
         except Exception as exc:  # pragma: no cover
-            print(f"Error executing definition lookup: {exc}")
+            print("No definition found for the supplied location")
             return
 
         if not result:
