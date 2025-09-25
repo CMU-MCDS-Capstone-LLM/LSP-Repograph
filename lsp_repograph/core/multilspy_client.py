@@ -7,15 +7,30 @@ from __future__ import annotations
 
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Dict, Iterable, List, Optional, Tuple
+from typing import Dict, Iterable, List, Optional, Tuple, TypedDict
 import uuid
 
 from multilspy import SyncLanguageServer
 from multilspy.multilspy_config import MultilspyConfig
 from multilspy.multilspy_logger import MultilspyLogger
-from multilspy.multilspy_types import Location, UnifiedSymbolInformation
+from multilspy.multilspy_types import Hover, Location, UnifiedSymbolInformation
 
 from lsp_repograph.core.lsp.jedi_language_server.custom_jedi_server import CustomJediServer
+
+
+class DefinitionResult(TypedDict):
+    """Typed dict for definition lookup results."""
+    absolute_path: str
+    line: int
+    character: int
+    hover_text: Optional[str]
+
+
+class ReferenceResult(TypedDict):
+    """Typed dict for reference lookup results."""
+    absolute_path: str
+    line: int
+    character: int
 
 
 class MultilspyLSPClient:
@@ -61,7 +76,7 @@ class MultilspyLSPClient:
         module: str,
         qualpath: Optional[str] = None,
         with_hover_msg: bool = True,
-    ) -> Dict[str, Optional[str]]:
+    ) -> Optional[DefinitionResult]:
         """Find the definition for a symbol identified by module and qualpath."""
         if not module:
             raise ValueError("'module' is required for find_def_by_fqn")
@@ -81,7 +96,7 @@ class MultilspyLSPClient:
         *,
         module: str,
         qualpath: Optional[str] = None,
-    ) -> List[Dict[str, int]]:
+    ) -> List[ReferenceResult]:
         """Find all references for a symbol identified by module and qualpath."""
         if not module:
             raise ValueError("'module' is required for find_refs_by_fqn")
@@ -102,7 +117,7 @@ class MultilspyLSPClient:
         line: int,
         character: int,
         with_hover_msg: bool = True,
-    ) -> Dict[str, Optional[str]]:
+    ) -> Optional[DefinitionResult]:
         """Find the definition pointed to by a repo-relative file location."""
         abs_path = self.repo_path / rel_path
         if not abs_path.exists():
@@ -121,7 +136,7 @@ class MultilspyLSPClient:
         rel_path: str,
         line: int,
         character: int,
-    ) -> List[Dict[str, int]]:
+    ) -> List[ReferenceResult]:
         """Find all references for the symbol at a repo-relative file location."""
         abs_path = self.repo_path / rel_path
         if not abs_path.exists():
@@ -153,28 +168,34 @@ class MultilspyLSPClient:
         *,
         with_hover_msg: bool,
         scratch_path: Optional[Path] = None,
-    ) -> Dict[str, Optional[str]]:
+    ) -> Optional[DefinitionResult]:
         if not self.server:
-            return {}
+            return None
 
         with self.server.start_server():
             definitions = self.server.request_definition(absolute_path, line, character)
             if not isinstance(definitions, list) or not definitions:
-                return {}
+                return None
 
             definition = self._first_non_scratch_definition(definitions, scratch_path)
             if not definition:
-                return {}
+                return None
 
             result = self._format_location_for_definition(definition)
+            if not result:
+                return None
 
+            hover_text = None
             if with_hover_msg:
                 hover_response = self.server.request_hover(absolute_path, line, character)
-                result["hover_text"] = self._extract_hover_text(hover_response)
-            else:
-                result["hover_text"] = None
+                hover_text = self._extract_hover_text(hover_response)
 
-            return result
+            return DefinitionResult(
+                absolute_path=result["absolute_path"],
+                line=result["line"],
+                character=result["character"],
+                hover_text=hover_text,
+            )
 
     def _references_from_position(
         self,
@@ -183,7 +204,7 @@ class MultilspyLSPClient:
         character: int,
         *,
         scratch_path: Optional[Path] = None,
-    ) -> List[Dict[str, int]]:
+    ) -> List[ReferenceResult]:
         if not self.server:
             return []
 
@@ -192,7 +213,7 @@ class MultilspyLSPClient:
             if not isinstance(references, list):
                 return []
 
-            filtered: List[Dict[str, int]] = []
+            filtered: List[ReferenceResult] = []
             seen: set[Tuple[str, int, int]] = set()
 
             for ref in references:
@@ -215,38 +236,39 @@ class MultilspyLSPClient:
 
     def _first_non_scratch_definition(
         self,
-        definitions: Iterable[UnifiedSymbolInformation],
+        definitions: Iterable[Location],
         scratch_path: Optional[Path],
-    ) -> Optional[UnifiedSymbolInformation]:
+    ) -> Optional[Location]:
         for definition in definitions:
             if scratch_path and self._is_scratch_file_ref(definition, scratch_path):
                 continue
             return definition
         return None
 
-    def _format_location_for_definition(self, definition: UnifiedSymbolInformation) -> Dict[str, Optional[str]]:
+    def _format_location_for_definition(self, definition: Location) -> Optional[DefinitionResult]:
         file_path = self._extract_absolute_path(definition)
         if not file_path:
-            return {}
+            return None
 
         line, character = self._extract_position(definition)
-        return {
-            "absolute_path": file_path,
-            "line": line,
-            "character": character,
-        }
+        return DefinitionResult(
+            absolute_path=file_path,
+            line=line,
+            character=character,
+            hover_text=None,
+        )
 
-    def _format_location_for_reference(self, reference: Location) -> Optional[Dict[str, int]]:
+    def _format_location_for_reference(self, reference: Location) -> Optional[ReferenceResult]:
         file_path = self._extract_absolute_path(reference)
         if not file_path:
             return None
 
         line, character = self._extract_position(reference)
-        return {
-            "absolute_path": file_path,
-            "line": line,
-            "character": character,
-        }
+        return ReferenceResult(
+            absolute_path=file_path,
+            line=line,
+            character=character,
+        )
 
     def _extract_absolute_path(self, location: Location | UnifiedSymbolInformation) -> Optional[str]:
         if "absolutePath" in location and location["absolutePath"]:
@@ -296,7 +318,7 @@ class MultilspyLSPClient:
 
         return scratch_content, target_line, target_char
 
-    def _extract_hover_text(self, hover_response: Optional[Dict]) -> Optional[str]:
+    def _extract_hover_text(self, hover_response: Optional[Hover]) -> Optional[str]:
         if not hover_response or not isinstance(hover_response, dict):
             return None
 
