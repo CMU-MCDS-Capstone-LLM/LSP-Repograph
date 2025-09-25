@@ -77,7 +77,7 @@ class MultilspyLSPClient:
     #         return []
     #
 
-    def find_definition(self, file_path: str, line: int, character: int) -> List[Location]:
+    def find_def_by_loc(self, file_path: str, line: int, character: int) -> List[Location]:
         """
         Find definition at specific position
 
@@ -100,7 +100,7 @@ class MultilspyLSPClient:
             print(f"Error finding definition: {e}")
             return []
 
-    def find_references(self, file_path: str, line: int, character: int) -> List[Location]:
+    def find_refs_by_loc(self, file_path: str, line: int, character: int) -> List[Location]:
         """
         Find all references to symbol at position
 

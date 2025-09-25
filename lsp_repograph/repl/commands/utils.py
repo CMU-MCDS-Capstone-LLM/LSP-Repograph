@@ -1,5 +1,7 @@
 from typing import Dict, Any
 
+from multilspy.multilspy_types import Location
+
 
 def read_file_line(file_path: str, line_number: int) -> str:
     """Read a specific line from a file (0-indexed)"""
@@ -13,7 +15,7 @@ def read_file_line(file_path: str, line_number: int) -> str:
     return "<Line not found>"
 
 
-def format_reference_with_content(ref: Dict[str, Any], repo_path: str = "") -> str:
+def format_reference_with_content(ref: Location, repo_path: str = "") -> str:
     """Format a reference with its source line content"""
     # Extract file path (prefer absolutePath, fallback to relativePath)
     if 'absolutePath' not in ref:

@@ -47,7 +47,7 @@ class FindDefinitionAtPositionCommand(Command):
             
             print(f"Finding definition at {file_path}:{line}:{col}")
             
-            result = client.find_definition(abs_path, line, col)
+            result = client.find_def_by_loc(abs_path, line, col)
             print(f"\nFound {len(result)} definitions:")
             pprint(result)
             
@@ -98,7 +98,7 @@ class FindReferencesAtPositionCommand(Command):
             
             print(f"Finding references at {file_path}:{line}:{col}")
             
-            result = client.find_references(abs_path, line, col)
+            result = client.find_refs_by_loc(abs_path, line, col)
             print(f"\nFound {len(result)} references:")
             if result:
                 for ref in result:
