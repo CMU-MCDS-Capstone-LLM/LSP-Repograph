@@ -163,7 +163,7 @@ Mainly due to time limit, some features won't be supported within the scope of C
 
 > The sections below are not updated. Just refer to getting started section above.
 
-LSP-RepoGraph provides `where_used` and `where_defined` functionality by leveraging Language Server Protocol (LSP) capabilities instead of text scanning. This approach offers:
+LSP-RepoGraph provides definition and reference lookups (both by fully-qualified name and by caret location) by leveraging Language Server Protocol (LSP) capabilities instead of text scanning. This approach offers:
 
 - **Semantic accuracy**: Understands Python imports, scoping, inheritance
 - **High performance**: Uses Pyright's built-in indexing instead of scanning files
@@ -188,14 +188,15 @@ from lsp_repograph import SimpleCodeTool
 # Initialize tool with repository path
 tool = SimpleCodeTool("/path/to/your/python/project")
 
-# Find where a class is defined
-definitions = tool.where_defined("Calculator")
+# Find a definition by fully-qualified name
+definition = tool.find_def_by_fqn("collections", "deque.popleft")
 
-# Find all places where a function is used
-usages = tool.where_used("calculate_sum")
+# Find references by fully-qualified name
+references = tool.find_refs_by_fqn("pathlib", "Path.read_text")
 
-# Get both definitions and references
-results = tool.search_symbol("MyClass")
+# Use a repo-relative location (0-indexed line/character)
+definition_from_loc = tool.find_def_by_loc("app/io_utils.py", line=42, character=25)
+references_from_loc = tool.find_refs_by_loc("app/io_utils.py", line=42, character=25)
 
 # Cleanup
 tool.shutdown()
@@ -212,10 +213,10 @@ python demo.py
 
 Try these commands:
 
-- `def Calculator` - Find Calculator class definition
-- `use calculate_sum` - Find all uses of calculate_sum function
-- `both AdvancedCalculator` - Find definition and all uses
-- `explore math_utils.py` - Show all symbols in file
+- `find-def-by-fqn --module collections --qualpath deque.popleft`
+- `find-refs-by-fqn --module pathlib --qualpath Path.read_text`
+- `find-def-by-loc --rel_path sample_project/main.py --line 12 --character 8`
+- `find-refs-by-loc --rel_path sample_project/main.py --line 12 --character 8`
 
 ## API Reference
 
@@ -223,56 +224,49 @@ Try these commands:
 
 Main interface for code search functionality.
 
-#### `where_defined(symbol_name: str) -> List[Dict]`
+#### `find_def_by_fqn(module: str, qualpath: str | None = None, with_hover_msg: bool = True) -> Dict`
 
-Find where a symbol is defined.
-
-**Returns:**
-
-```python
-[
-    {
-        'file': 'path/to/file.py',
-        'line': 15,  # 1-indexed
-        'column': 8,  # 0-indexed
-        'context': 'class Calculator:\n    def __init__(self):',
-        'type': 'definition',
-        'symbol_kind': 'Class',
-        'name': 'Calculator'
-    }
-]
-```
-
-#### `where_used(symbol_name: str) -> List[Dict]`
-
-Find where a symbol is used/referenced.
-
-**Returns:**
-
-```python
-[
-    {
-        'file': 'path/to/file.py',
-        'line': 42,
-        'column': 12,
-        'context': 'calc = Calculator()',
-        'type': 'reference'
-    }
-]
-```
-
-#### `search_symbol(symbol_name: str) -> Dict[str, List]`
-
-Get both definitions and references.
+Resolve a definition using an importable module and dotted qualpath.
 
 **Returns:**
 
 ```python
 {
-    'definitions': [...],  # List of definition results
-    'references': [...]    # List of reference results
+    'absolute_path': '/usr/lib/python3.12/collections/__init__.py',
+    'line': 560,            # 0-indexed
+    'character': 8,         # 0-indexed
+    'hover_text': '... optional markdown hover ...'
 }
 ```
+
+#### `find_refs_by_fqn(module: str, qualpath: str | None = None) -> List[Dict]`
+
+Resolve references for the symbol identified by `<module>:<qualpath>`.
+
+**Returns:**
+
+```python
+[
+    {
+        'absolute_path': '/workspace/app/io_utils.py',
+        'line': 42,
+        'character': 17
+    },
+    {
+        'absolute_path': '/workspace/tests/test_io.py',
+        'line': 10,
+        'character': 12
+    }
+]
+```
+
+#### `find_def_by_loc(rel_path: str, line: int, character: int, with_hover_msg: bool = True) -> Dict`
+
+Resolve a definition from a repo-relative file path plus zero-based location.
+
+#### `find_refs_by_loc(rel_path: str, line: int, character: int) -> List[Dict]`
+
+Return references for the symbol under the cursor at the supplied location.
 
 ## Architecture
 

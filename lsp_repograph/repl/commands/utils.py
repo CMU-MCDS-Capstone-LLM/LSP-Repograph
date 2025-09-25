@@ -1,35 +1,56 @@
-from typing import Dict, Any
+from __future__ import annotations
 
-from multilspy.multilspy_types import Location
+from typing import Dict, Iterable, Tuple
+
+
+def parse_flag_args(args: Iterable[str]) -> Dict[str, str]:
+    """Parse `--key value` pairs from the REPL command arguments."""
+    result: Dict[str, str] = {}
+    iterator = iter(args)
+
+    for token in iterator:
+        if not token.startswith("--"):
+            raise ValueError(f"Unexpected token '{token}'. Flags must start with '--'.")
+
+        key = token[2:]
+        try:
+            value = next(iterator)
+        except StopIteration as exc:  # pragma: no cover - validated via REPL usage
+            raise ValueError(f"Missing value for flag '--{key}'") from exc
+
+        result[key] = value
+
+    return result
+
+
+def parse_bool(value: str | None, *, default: bool) -> bool:
+    """Convert common string representations of booleans to bool."""
+    if value is None:
+        return default
+
+    lowered = value.strip().lower()
+    if lowered in {"true", "1", "yes", "y"}:
+        return True
+    if lowered in {"false", "0", "no", "n"}:
+        return False
+    raise ValueError(f"Invalid boolean value: {value}")
 
 
 def read_file_line(file_path: str, line_number: int) -> str:
-    """Read a specific line from a file (0-indexed)"""
+    """Read a specific line from a file (0-indexed)."""
     try:
-        with open(file_path, 'r', encoding='utf-8') as f:
-            lines = f.readlines()
-            if 0 <= line_number < len(lines):
-                return lines[line_number].rstrip()
-    except Exception as e:
-        return f"<Error reading file: {e}>"
+        with open(file_path, "r", encoding="utf-8") as handle:
+            lines = handle.readlines()
+    except Exception as exc:  # pragma: no cover - IO errors surface to user directly
+        return f"<Error reading file: {exc}>"
+
+    if 0 <= line_number < len(lines):
+        return lines[line_number].rstrip("\n")
     return "<Line not found>"
 
 
-def format_reference_with_content(ref: Location, repo_path: str = "") -> str:
-    """Format a reference with its source line content"""
-    # Extract file path (prefer absolutePath, fallback to relativePath)
-    if 'absolutePath' not in ref:
-        return str(ref)  # Fallback to raw output
-    file_path = ref['absolutePath']
-    
-    # Extract line/column info
-    range_info = ref.get('range', {})
-    start = range_info.get('start', {})
-    line_num = start.get('line', 0)  # 0-indexed
-    col_num = start.get('character', 0)
-    
-    # Read the actual line content
-    line_content = read_file_line(file_path, line_num)
-    
-    # Format output
-    return f"{file_path}:{line_num + 1}:{col_num + 1}: {line_content}"
+def format_location_for_display(path: str, line: int, character: int) -> Tuple[str, str]:
+    """Produce display strings for definition/reference printing."""
+    header = f"File \"{path}\", line {line}, character {character}"
+    content = read_file_line(path, line)
+    return header, content

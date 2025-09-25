@@ -11,14 +11,10 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 from lsp_repograph.core.multilspy_client import MultilspyLSPClient
 from lsp_repograph.repl.commands import (
     Command,
-    FindWorkspaceDefinitionCommand,
-    FindWorkspaceReferencesCommand,
-    FindLibraryDefinitionCommand,
-    FindLibraryReferencesCommand,
-    FindBuiltinDefinitionCommand,
-    FindBuiltinReferencesCommand,
-    FindDefinitionAtPositionCommand,
-    FindReferencesAtPositionCommand
+    FindDefByFqnCommand,
+    FindRefsByFqnCommand,
+    FindDefByLocCommand,
+    FindRefsByLocCommand,
 )
 
 
@@ -49,14 +45,10 @@ class REPLClient:
         
         # Initialize available commands
         self.commands: List[Command] = [
-            FindWorkspaceDefinitionCommand(),
-            FindWorkspaceReferencesCommand(),
-            FindLibraryDefinitionCommand(),
-            FindLibraryReferencesCommand(),
-            FindBuiltinDefinitionCommand(),
-            FindBuiltinReferencesCommand(),
-            FindDefinitionAtPositionCommand(),
-            FindReferencesAtPositionCommand()
+            FindDefByFqnCommand(),
+            FindRefsByFqnCommand(),
+            FindDefByLocCommand(),
+            FindRefsByLocCommand(),
         ]
         
         # Create command lookup map
@@ -100,8 +92,10 @@ class REPLClient:
         
         print("  help                          - Show this help")
         print("  quit / exit                   - Exit REPL")
-        print("\nFile paths should be relative to the repo root.")
-        print("Line and column numbers are 0-indexed.")
+        print("\nNotes:")
+        print("  • File paths are relative to the repo root")
+        print("  • Line and character inputs are 0-indexed (LSP style)")
+        print("  • FQN format: <module>:<qualpath>, e.g. pathlib:Path.read_text")
         print("Examples:")
         
         for cmd in self.commands:
